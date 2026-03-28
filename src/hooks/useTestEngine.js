@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { questions } from "../data/questions";
+import { useEffect, useState } from "react";
+import { getPreguntas } from "../services/api";
 
 export const useTestEngine = () => {
 
@@ -10,7 +10,40 @@ export const useTestEngine = () => {
     R: 0, I: 0, A: 0, S: 0, E: 0, C: 0
   });
 
-  const [pool, setPool] = useState(questions.fase1);
+  const [pool, setPool] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+ useEffect(() => {
+    const fetchPreguntas = async () => {
+      try {
+        const data = await getPreguntas();
+
+        const preguntasAdaptadas = data.map(p => ({
+          id: p.id_pregunta,
+          text: p.descripcion,
+          pesos: {
+            [p.rasgo]: 1
+          },
+          nivel: p.nivel
+        }));
+        
+        const preguntasPorFase = {
+          fase1: preguntasAdaptadas.filter(p => p.nivel === 1),
+          fase2: preguntasAdaptadas.filter(p => p.nivel === 2),
+          fase3: preguntasAdaptadas.filter(p => p.nivel === 3)
+        };
+
+        setPool(preguntasPorFase.fase1);
+
+      } catch (error) {
+        console.error("Error cargando preguntas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPreguntas();
+  }, []);
 
   // =========================
   // RESPUESTA BLOQUE (FASE 1)

@@ -14,7 +14,9 @@ export default function TestPage() {
     scores,
     isFinished
   } = useTestEngine();
-
+  if (!pool || pool.length === 0) {
+    return <div>Cargando preguntas...</div>;
+  }
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
@@ -24,7 +26,7 @@ export default function TestPage() {
       </div>
 
       <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">📊</div>
+        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">📝</div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Módulo Test Vocacional</h1>
           <p className="text-gray-400 mt-1">Responde el siguiente cuestionario para identificar cuales son tus aptitudes.</p>
