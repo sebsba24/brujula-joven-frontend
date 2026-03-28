@@ -6,6 +6,7 @@ const modules = [
   { label: 'Educación',   path: '/modulos/educacion' },
   { label: 'Legal',       path: '/modulos/legal' },
   { label: 'Financiero',  path: '/modulos/financiero' },
+  { label: 'Test',        path: '/modulos/test' }
 ]
 
 export default function Navbar() {

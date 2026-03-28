@@ -5,6 +5,7 @@ import EmpleoPage    from './pages/modules/EmpleoPage'
 import EducacionPage from './pages/modules/EducacionPage'
 import LegalPage     from './pages/modules/LegalPage'
 import FinancieroPage from './pages/modules/FinancieroPage'
+import TestPage from './pages/modules/TestPage'
 import './styles/tokens.css'
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/modulos/educacion"   element={<EducacionPage />} />
             <Route path="/modulos/legal"       element={<LegalPage />} />
             <Route path="/modulos/financiero"  element={<FinancieroPage />} />
+            <Route path="/modulos/test"  element={<TestPage />} />
           </Routes>
         </main>
       </div>
