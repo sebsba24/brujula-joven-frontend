@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from "react";
 import { Link, useLocation } from 'react-router-dom'
+import UserMenu from "../ui/UserMenu";
 
 const modules = [
   { label: 'Empleo',      path: '/modulos/empleo' },
@@ -12,12 +13,17 @@ const modules = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
+  const [isAuth, setIsAuth] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuth(!!token);
+  }, []);
 
   return (
     <nav className="bg-navy-900 sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-
+          
           {/* Logo */}
           <Link to="/modulos" className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 bg-lime-400 rounded-lg flex items-center justify-center">
@@ -41,6 +47,12 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
+
+            {isAuth  ? (
+              <UserMenu />
+            ) : (
+              <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">Iniciar sesión</Link>
+            )}
 
           {/* Hamburger */}
           <button onClick={() => setOpen(!open)}

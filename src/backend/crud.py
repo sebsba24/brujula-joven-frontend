@@ -3,7 +3,9 @@ from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError
 from typing import TypeVar, Generic, Type, Optional, List
 from fastapi import HTTPException
-import bcrypt
+from security import verify_password
+from security import hash_password
+
 
 from database import Base
 import models
@@ -128,18 +130,27 @@ class CRUDUsuario(CRUDBase[models.Usuario]):
             select(models.Usuario).where(models.Usuario.email == email)
         )
         return result.scalar_one_or_none()
+    
+    async def authenticate(self, db, email: str, password: str):
+        user = await self.get_by_email(db, email)
+
+        if not user:
+            return None
+
+        if not verify_password(password, user.password_hash):
+            return None
+
+        return user
 
     async def create(self, db: AsyncSession, obj_in: schemas.UsuarioCreate) -> models.Usuario:
-        hashed_password = bcrypt.hashpw(obj_in.password.encode('utf-8'), bcrypt.gensalt())
         user_data = obj_in.model_dump(exclude={"password"})
-        user_data["password_hash"] = hashed_password.decode('utf-8')
+        user_data["password_hash"] = hash_password(obj_in.password)
         return await super().create(db, user_data)
 
     async def update(self, db: AsyncSession, id: int, obj_in: schemas.UsuarioUpdate) -> Optional[models.Usuario]:
         update_data = obj_in.model_dump(exclude_unset=True)
         if "password" in update_data and update_data["password"]:
-            hashed_password = bcrypt.hashpw(update_data["password"].encode('utf-8'), bcrypt.gensalt())
-            update_data["password_hash"] = hashed_password.decode('utf-8')
+            update_data["password_hash"] = hash_password(update_data["password"])
             del update_data["password"]
         return await super().update(db, id, "id_usuario", update_data)
 

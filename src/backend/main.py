@@ -6,9 +6,11 @@ from database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 import schemas
 import crud
+from routes import auth
+from security import verify_password
 
 app = fastapi.FastAPI(
-    title="University Management API",
+    title="Brujula Joven API",
     description="REST API for managing universities, careers, users, roles, subsidies, and questionnaires",
     version="1.0.0",
 )
@@ -21,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 
 # Health Check
 @app.get("/health")

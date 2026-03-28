@@ -35,3 +35,39 @@ export const enviarDatos = async (data) => {
 
   return await res.json();
 };
+
+export const loginUser = async (data) => {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data), 
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error("Error backend:", error);
+    throw new Error(error.detail || "Error en login");
+  }
+
+  return await res.json();
+};
+
+// Registrar usuario
+export const registerUser = async (data) => {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || "Error en registro");
+  }
+
+  return await res.json();
+};

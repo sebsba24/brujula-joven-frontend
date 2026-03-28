@@ -117,10 +117,13 @@ class UsuarioBase(BaseModel):
 
 
 class UsuarioCreate(UsuarioBase):
-    password: str = Field(..., min_length=6)
+    nombre: str
+    email: EmailStr
+    password: str
+    tipo_documento: str
+    numero_documento: str
 
-
-class UsuarioUpdate(BaseModel):
+class UsuarioUpdate(UsuarioBase):
     nombre: Optional[str] = Field(None, max_length=100)
     email: Optional[EmailStr] = None
     tipo_documento: Optional[str] = Field(None, max_length=10)
@@ -131,15 +134,26 @@ class UsuarioUpdate(BaseModel):
 
 class UsuarioResponse(UsuarioBase):
     id_usuario: int
+    nombre: str
+    email: str
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
 
 # UsuarioRol Schemas
-class UsuarioRolBase(BaseModel):
+class UsuarioRolBase(UsuarioBase):
     id_usuario: int
     id_rol: int
 
