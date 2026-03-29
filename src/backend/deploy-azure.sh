@@ -5,12 +5,12 @@
 # ===========================================
 
 # Configuration - Update these variables
-RESOURCE_GROUP="university-api-rg"
+RESOURCE_GROUP="brujula-api-rg"
 LOCATION="eastus"
-CONTAINER_APP_ENV="university-api-env"
-CONTAINER_APP_NAME="university-api"
-ACR_NAME="universityapiacr"
-IMAGE_NAME="university-api"
+CONTAINER_APP_ENV="brujula-api-env"
+CONTAINER_APP_NAME="brujula-api"
+ACR_NAME="brujulaapiacr"
+IMAGE_NAME="brujula-api"
 
 # Colors for output
 RED='\033[0;31m'

@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/university_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:Admin1234@db:5432/brujulaj_db
       - DEBUG=false
     depends_on:
       db:
@@ -21,8 +21,8 @@ services:
     image: postgres:16-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=university_db
+      - POSTGRES_PASSWORD=Admin1234
+      - POSTGRES_DB=beujulaj_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
