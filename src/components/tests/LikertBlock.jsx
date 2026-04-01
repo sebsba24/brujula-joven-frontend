@@ -58,7 +58,7 @@ export default function LikertBlock({ questions, onSubmit }) {
                   <td key={val}>
                     <input
                       type="radio"
-                      name={`q-${q.id}`}
+                      name={`${q.rasgo}${q.id}`}
                       onChange={() => handleChange(q.id, val)}
                     />
                   </td>

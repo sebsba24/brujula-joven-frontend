@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Archivos python de compilación
+**/__pycache__/
+*.py[cod]

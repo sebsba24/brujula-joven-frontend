@@ -11,12 +11,23 @@ const modules = [
 ]
 
 export default function Navbar() {
+  
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   const [isAuth, setIsAuth] = useState(false);
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuth(!!token);
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      setIsAuth(!!token);
+    };
+
+    checkAuth();
+
+    window.addEventListener("authChange", checkAuth);
+
+    return () => {
+      window.removeEventListener("authChange", checkAuth);
+    };
   }, []);
 
   return (
@@ -34,19 +45,20 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-1">
-            {modules.map(m => (
-              <Link key={m.path} to={m.path}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  pathname === m.path
-                    ? 'bg-blue-400 text-white'
-                    : 'text-gray-200 hover:text-white hover:bg-navy-800'
-                }`}>
-                {m.label}
-              </Link>
-            ))}
-          </div>
+          {isAuth && (
+            <div className="hidden md:flex items-center gap-1">
+              {modules.map(m => (
+                <Link key={m.path} to={m.path}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    pathname === m.path
+                      ? 'bg-blue-400 text-white'
+                      : 'text-gray-200 hover:text-white hover:bg-navy-800'
+                  }`}>
+                  {m.label}
+                </Link>
+              ))}
+            </div>
+          )}  
 
             {isAuth  ? (
               <UserMenu />
@@ -54,20 +66,21 @@ export default function Navbar() {
               <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">Iniciar sesión</Link>
             )}
 
-          {/* Hamburger */}
-          <button onClick={() => setOpen(!open)}
-            className="md:hidden text-white p-2 rounded-lg hover:bg-navy-800">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {open
-                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>}
-            </svg>
-          </button>
+          {isAuth && (
+            <button onClick={() => setOpen(!open)}
+              className="md:hidden text-white p-2 rounded-lg hover:bg-navy-800">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {open
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>}
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile menu */}
-      {open && (
+      {open && isAuth && (
         <div className="md:hidden bg-navy-800 border-t border-navy-950 px-4 py-3 space-y-1">
           {modules.map(m => (
             <Link key={m.path} to={m.path} onClick={() => setOpen(false)}

@@ -12,15 +12,25 @@ export const useTestEngine = () => {
 
   const [pool, setPool] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [questions, setQuestions] = useState({
+    fase1: [],
+    fase2: [],
+    fase3: []
+  });
 
  useEffect(() => {
     const fetchPreguntas = async () => {
       try {
         const data = await getPreguntas();
 
-        const preguntasAdaptadas = data.map(p => ({
+        // SOLO ENUNCIADOS
+        const enunciados = data.filter(p => p.tipo === "Enunciado");
+        console.log(data);
+        // ADAPTAR SOLO ENUNCIADOS
+        const preguntasAdaptadas = enunciados.map(p => ({
           id: p.id_pregunta,
           text: p.descripcion,
+          rasgo: p.rasgo,
           pesos: {
             [p.rasgo]: 1
           },
@@ -33,7 +43,9 @@ export const useTestEngine = () => {
           fase3: preguntasAdaptadas.filter(p => p.nivel === 3)
         };
 
+        setQuestions(preguntasPorFase);
         setPool(preguntasPorFase.fase1);
+
 
       } catch (error) {
         console.error("Error cargando preguntas:", error);
@@ -93,10 +105,10 @@ export const useTestEngine = () => {
 
       let nuevasPreguntas = [];
 
-      top3.forEach(p => {
+      top3.forEach(rasgo => {
         nuevasPreguntas = [
           ...nuevasPreguntas,
-          ...questions.fase2[p]
+          ...questions.fase2.filter(q => q.rasgo === rasgo)
         ];
       });
 
@@ -136,7 +148,7 @@ export const useTestEngine = () => {
     pool,
     question: pool[index],
     answer,
-    answerBlock, // 🔥 IMPORTANTE (esto soluciona tu error)
+    answerBlock, 
     scores,
     progress: pool.length ? ((index + 1) / pool.length) * 100 : 0,
     isFinished: fase === 4

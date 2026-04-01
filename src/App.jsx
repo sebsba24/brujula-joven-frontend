@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Navbar from './components/layout/Navbar'
 import ModulesIndex from './pages/ModulesIndex'
 import EmpleoPage    from './pages/modules/EmpleoPage'
@@ -6,9 +7,10 @@ import EducacionPage from './pages/modules/EducacionPage'
 import LegalPage     from './pages/modules/LegalPage'
 import FinancieroPage from './pages/modules/FinancieroPage'
 import TestPage from './pages/modules/TestPage'
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import ForgotPassword from "./pages/auth/ForgotPassword";
+import TestFase2 from './pages/modules/TestFase2'
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import ForgotPassword from './pages/auth/ForgotPassword'
 import './styles/tokens.css'
 
 export default function App() {
@@ -22,12 +24,13 @@ export default function App() {
             <Route path="/login"              element={<LoginPage />} />
             <Route path="/register"           element={<RegisterPage />} />
             <Route path="/forgot-password"    element={<ForgotPassword />} />
-            <Route path="/modulos"            element={<ModulesIndex />} />
-            <Route path="/modulos/empleo"     element={<EmpleoPage />} />
-            <Route path="/modulos/educacion"  element={<EducacionPage />} />
-            <Route path="/modulos/legal"      element={<LegalPage />} />
-            <Route path="/modulos/financiero" element={<FinancieroPage />} />
-            <Route path="/modulos/test"       element={<TestPage />} />
+            <Route path="/modulos"            element={<ProtectedRoute><ModulesIndex /></ProtectedRoute>} />
+            <Route path="/modulos/empleo"     element={<ProtectedRoute><EmpleoPage /></ProtectedRoute>} />
+            <Route path="/modulos/educacion"  element={<ProtectedRoute><EducacionPage /></ProtectedRoute>} />
+            <Route path="/modulos/legal"      element={<ProtectedRoute><LegalPage /></ProtectedRoute>} />
+            <Route path="/modulos/financiero" element={<ProtectedRoute><FinancieroPage /></ProtectedRoute>} />
+            <Route path="/modulos/test"       element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
+            <Route path="/modulos/test/fase2" element={<ProtectedRoute><TestFase2 /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

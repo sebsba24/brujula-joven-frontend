@@ -2,94 +2,76 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
 
+# ==================== BASE MIXINS ====================
 
-# Universidad Schemas
+class TimestampSchema(BaseModel):
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class EstadoSchema(BaseModel):
+    estado: bool = True
+
+# ==================== UNIVERSIDAD ====================
+
 class UniversidadBase(BaseModel):
     nombre: str = Field(..., max_length=200)
     ubicacion: Optional[str] = None
-    estado: bool = True
-
 
 class UniversidadCreate(UniversidadBase):
-    pass
-
+    estado: bool = True
 
 class UniversidadUpdate(BaseModel):
     nombre: Optional[str] = Field(None, max_length=200)
     ubicacion: Optional[str] = None
     estado: Optional[bool] = None
 
-
-class UniversidadResponse(UniversidadBase):
+class UniversidadResponse(UniversidadBase, EstadoSchema, TimestampSchema):
     id_universidad: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== CARRERA ====================
 
-
-# Carrera Schemas
 class CarreraBase(BaseModel):
     nombre: str = Field(..., max_length=200)
-    id_universidad: Optional[int] = None
-    estado: bool = True
-
+    id_universidad: int
 
 class CarreraCreate(CarreraBase):
-    pass
-
+    estado: bool = True
 
 class CarreraUpdate(BaseModel):
     nombre: Optional[str] = Field(None, max_length=200)
     id_universidad: Optional[int] = None
     estado: Optional[bool] = None
 
-
-class CarreraResponse(CarreraBase):
+class CarreraResponse(CarreraBase, EstadoSchema, TimestampSchema):
     id_carrera: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== ROL ====================
 
-
-# Rol Schemas
 class RolBase(BaseModel):
     nombre: str = Field(..., max_length=50)
-    estado: bool = True
-
 
 class RolCreate(RolBase):
-    pass
-
+    estado: bool = True
 
 class RolUpdate(BaseModel):
     nombre: Optional[str] = Field(None, max_length=50)
     estado: Optional[bool] = None
 
-
-class RolResponse(RolBase):
+class RolResponse(RolBase, EstadoSchema, TimestampSchema):
     id_rol: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== SUBSIDIOS ====================
 
-
-# ConvenioSubsidio Schemas
 class SubsidioBase(BaseModel):
     nombre: str = Field(..., max_length=200)
     entidad: Optional[str] = Field(None, max_length=200)
     descripcion: Optional[str] = None
-    estado: bool = True
-
 
 class SubsidioCreate(SubsidioBase):
-    pass
-
+    estado: bool = True
 
 class SubsidioUpdate(BaseModel):
     nombre: Optional[str] = Field(None, max_length=200)
@@ -97,33 +79,22 @@ class SubsidioUpdate(BaseModel):
     descripcion: Optional[str] = None
     estado: Optional[bool] = None
 
-
-class SubsidioResponse(SubsidioBase):
+class SubsidioResponse(SubsidioBase, EstadoSchema, TimestampSchema):
     id_subsidio: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== USUARIO ====================
 
-
-# Usuario Schemas
 class UsuarioBase(BaseModel):
     nombre: str = Field(..., max_length=100)
     email: EmailStr
     tipo_documento: str = Field(..., max_length=10)
     numero_documento: str = Field(..., max_length=25)
-    estado: bool = True
-
 
 class UsuarioCreate(UsuarioBase):
-    nombre: str
-    email: EmailStr
-    password: str
-    tipo_documento: str
-    numero_documento: str
+    password: str = Field(..., min_length=6)
+    estado: bool = True
 
-class UsuarioUpdate(UsuarioBase):
+class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = Field(None, max_length=100)
     email: Optional[EmailStr] = None
     tipo_documento: Optional[str] = Field(None, max_length=10)
@@ -131,134 +102,86 @@ class UsuarioUpdate(UsuarioBase):
     estado: Optional[bool] = None
     password: Optional[str] = Field(None, min_length=6)
 
-
-class UsuarioResponse(UsuarioBase):
+class UsuarioResponse(UsuarioBase, EstadoSchema, TimestampSchema):
     id_usuario: int
-    nombre: str
-    email: str
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== AUTH ====================
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: UsuarioResponse
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+# ==================== RELACIONES ====================
 
-# UsuarioRol Schemas
-class UsuarioRolBase(UsuarioBase):
+class UsuarioRolBase(BaseModel):
     id_usuario: int
     id_rol: int
 
-
 class UsuarioRolCreate(UsuarioRolBase):
-    pass
+    estado: bool = True
 
-
-class UsuarioRolResponse(UsuarioRolBase):
+class UsuarioRolResponse(UsuarioRolBase, EstadoSchema, TimestampSchema):
     id_usuario_rol: int
-    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
-
-# UsuarioCarrera Schemas
 class UsuarioCarreraBase(BaseModel):
     id_usuario: int
     id_carrera: int
 
-
 class UsuarioCarreraCreate(UsuarioCarreraBase):
-    pass
+    estado: bool = True
 
-
-class UsuarioCarreraResponse(UsuarioCarreraBase):
+class UsuarioCarreraResponse(UsuarioCarreraBase, EstadoSchema, TimestampSchema):
     id_usuario_carrera: int
-    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
-
-# UsuarioSubsidio Schemas
 class UsuarioSubsidioBase(BaseModel):
     id_usuario: int
     id_subsidio: int
 
-
 class UsuarioSubsidioCreate(UsuarioSubsidioBase):
-    pass
+    estado: bool = True
 
-
-class UsuarioSubsidioResponse(UsuarioSubsidioBase):
+class UsuarioSubsidioResponse(UsuarioSubsidioBase, EstadoSchema, TimestampSchema):
     id_usuario_subsidio: int
-    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== PREGUNTAS ====================
 
-
-# Pregunta Schemas
 class PreguntaBase(BaseModel):
-    rasgo: str = Field(..., max_length=1)
+    rasgo: str = Field(..., pattern="^[RIASEC]$")
     descripcion: str
     tipo: str = Field(default="opcion_multiple", max_length=20)
     nivel: int = Field(default=1, ge=1)
-    activa: bool = True
-
-class PreguntaSimple(BaseModel):
-    id_pregunta: int
-    rasgo: str
-    descripcion: str
-    nivel: int 
-
-    class Config:
-        from_attributes = True
-
 
 class PreguntaCreate(PreguntaBase):
-    pass
-
+    estado: bool = True
 
 class PreguntaUpdate(BaseModel):
-    rasgo: Optional[str] = Field(None, max_length=1)
+    rasgo: Optional[str] = Field(None, pattern="^[RIASEC]$")
     descripcion: Optional[str] = None
     tipo: Optional[str] = Field(None, max_length=20)
     nivel: Optional[int] = Field(None, ge=1)
-    activa: Optional[bool] = None
+    estado: Optional[bool] = None
 
-
-class PreguntaResponse(PreguntaBase):
+class PreguntaResponse(PreguntaBase, EstadoSchema, TimestampSchema):
     id_pregunta: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+# ==================== RESPUESTAS ====================
 
-
-# RespuestaCuestionario Schemas
 class RespuestaBase(BaseModel):
     id_usuario: int
     id_pregunta: int
     valor: int = Field(..., ge=1, le=5)
 
-
 class RespuestaCreate(RespuestaBase):
     pass
 
-
-class RespuestaResponse(RespuestaBase):
+class RespuestaResponse(RespuestaBase, TimestampSchema):
     id_respuesta: int
-    created_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
