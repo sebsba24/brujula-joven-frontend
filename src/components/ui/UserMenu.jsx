@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UserMenu() {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
     useEffect(() => {
         try {
@@ -21,12 +23,10 @@ export default function UserMenu() {
     }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("authChange"));
-    navigate("/");
+    logout();
+    navigate("/login");
   };
-
+  
   if (!user) return null;
 
   return (

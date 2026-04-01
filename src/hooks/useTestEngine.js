@@ -3,49 +3,40 @@ import { getPreguntas } from "../services/api";
 
 export const useTestEngine = () => {
 
-  const [fase, setFase] = useState(1);
-  const [index, setIndex] = useState(0);
-
+  const [allQuestions, setAllQuestions] = useState([]);
+  const [visibleQuestions, setVisibleQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({
     R: 0, I: 0, A: 0, S: 0, E: 0, C: 0
   });
 
-  const [pool, setPool] = useState([]);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [questions, setQuestions] = useState({
-    fase1: [],
-    fase2: [],
-    fase3: []
-  });
+  const [isFinished, setIsFinished] = useState(false);
 
- useEffect(() => {
+  // =========================
+  // CARGA INICIAL
+  // =========================
+  useEffect(() => {
     const fetchPreguntas = async () => {
       try {
         const data = await getPreguntas();
-
-        // SOLO ENUNCIADOS
-        const enunciados = data.filter(p => p.tipo === "Enunciado");
-        console.log(data);
-        // ADAPTAR SOLO ENUNCIADOS
-        const preguntasAdaptadas = enunciados.map(p => ({
+        
+        // Adaptar estructura base
+        const preguntas = data.map(p => ({
           id: p.id_pregunta,
           text: p.descripcion,
           rasgo: p.rasgo,
-          pesos: {
-            [p.rasgo]: 1
-          },
-          nivel: p.nivel
+          tipo: p.tipo,
+          nivel: p.nivel,
+          grupo: p.grupo || null,
+          valor: p.valor || 1
         }));
-        
-        const preguntasPorFase = {
-          fase1: preguntasAdaptadas.filter(p => p.nivel === 1),
-          fase2: preguntasAdaptadas.filter(p => p.nivel === 2),
-          fase3: preguntasAdaptadas.filter(p => p.nivel === 3)
-        };
+        console.log("DATA BACKEND:", data);
+        setAllQuestions(preguntas);
 
-        setQuestions(preguntasPorFase);
-        setPool(preguntasPorFase.fase1);
-
+        // Inicial: solo nivel 1
+        setVisibleQuestions(preguntas.filter(p => p.nivel === 1));
 
       } catch (error) {
         console.error("Error cargando preguntas:", error);
@@ -58,99 +49,96 @@ export const useTestEngine = () => {
   }, []);
 
   // =========================
-  // RESPUESTA BLOQUE (FASE 1)
+  // RESPONDER
   // =========================
-  const answerBlock = (answers, questionsBlock) => {
-    let newScores = { ...scores };
+  const answerQuestion = (question, value) => {
 
-    questionsBlock.forEach(q => {
-      const val = answers[q.id];
+    // Guardar respuesta
+    setAnswers(prev => ({
+      ...prev,
+      [`${question.rasgo}${question.id}`]: value
+    }));
 
-      Object.keys(q.pesos).forEach(p => {
-        newScores[p] += q.pesos[p] * val;
-      });
-    });
-
-    setScores(newScores);
-    avanzarFase(newScores);
-  };
-
-  // =========================
-  // RESPUESTA INDIVIDUAL (F2-F3)
-  // =========================
-  const answer = (value, pesos) => {
-    let newScores = { ...scores };
-
-    Object.keys(pesos).forEach(p => {
-      newScores[p] += pesos[p] * value;
-    });
-
-    setScores(newScores);
-
-    if (index + 1 < pool.length) {
-      setIndex(index + 1);
-    } else {
-      avanzarFase(newScores);
+    // Actualizar puntaje
+    if (question.rasgo) {
+      setScores(prev => ({
+        ...prev,
+        [question.rasgo]: prev[question.rasgo] + value
+      }));
     }
   };
 
   // =========================
-  // CAMBIO DE FASE
+  // SIGUIENTE NIVEL
   // =========================
-  const avanzarFase = (scoresActuales) => {
+  const nextLevel = () => {
 
-    // 🔹 FASE 1 → FASE 2
-    if (fase === 1) {
-      const top3 = getTop(scoresActuales, 3);
+    // NIVEL 1 → NIVEL 2
+    if (currentLevel === 1) {
+      const top2 = getTop(scores, 2);
 
-      let nuevasPreguntas = [];
+      const nivel2 = allQuestions.filter(q =>
+        q.nivel === 2 && top2.includes(q.rasgo)
+      );
 
-      top3.forEach(rasgo => {
-        nuevasPreguntas = [
-          ...nuevasPreguntas,
-          ...questions.fase2.filter(q => q.rasgo === rasgo)
-        ];
-      });
-
-      setPool(nuevasPreguntas);
-      setFase(2);
-      setIndex(0);
+      setVisibleQuestions(nivel2);
+      setCurrentLevel(2);
     }
 
-    // 🔹 FASE 2 → FASE 3
-    else if (fase === 2) {
-      setPool(questions.fase3);
-      setFase(3);
-      setIndex(0);
+    // NIVEL 2 → NIVEL 3
+    else if (currentLevel === 2) {
+      const top1 = getTop(scores, 1)[0];
+
+      const nivel3 = allQuestions.filter(q =>
+        q.nivel === 3 && q.rasgo === top1
+      );
+
+      setVisibleQuestions(nivel3);
+      setCurrentLevel(3);
     }
 
-    // 🔹 FINAL
+    // FINAL
     else {
-      setFase(4);
+      setIsFinished(true);
     }
   };
 
   // =========================
-  // TOP PERFILES
+  // TOP RASGOS
   // =========================
-  const getTop = (scores, n) => {
-    return Object.entries(scores)
+  const getTop = (scoresObj, n) => {
+    return Object.entries(scoresObj)
       .sort((a, b) => b[1] - a[1])
       .slice(0, n)
       .map(e => e[0]);
   };
 
   // =========================
-  // RETORNO DEL HOOK
+  // PROGRESO
   // =========================
+  const progress = visibleQuestions.length
+    ? (Object.keys(answers).length / visibleQuestions.length) * 100
+    : 0;
+
+  // =========================
+  // RESULTADO JSON
+  // =========================
+  const buildResult = () => {
+    return {
+      respuestas: answers,
+      scores
+    };
+  };
+
   return {
-    fase,
-    pool,
-    question: pool[index],
-    answer,
-    answerBlock, 
+    loading,
+    visibleQuestions,
+    answerQuestion,
+    nextLevel,
+    currentLevel,
     scores,
-    progress: pool.length ? ((index + 1) / pool.length) * 100 : 0,
-    isFinished: fase === 4
+    progress,
+    isFinished,
+    buildResult
   };
 };

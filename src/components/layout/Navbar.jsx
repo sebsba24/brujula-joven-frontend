@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from "../../context/AuthContext";
 import UserMenu from "../ui/UserMenu";
 
 const modules = [
@@ -14,21 +15,7 @@ export default function Navbar() {
   
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const [isAuth, setIsAuth] = useState(false);
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-      setIsAuth(!!token);
-    };
-
-    checkAuth();
-
-    window.addEventListener("authChange", checkAuth);
-
-    return () => {
-      window.removeEventListener("authChange", checkAuth);
-    };
-  }, []);
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <nav className="bg-navy-900 sticky top-0 z-50 shadow-lg">
@@ -45,7 +32,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {isAuth && (
+          {isAuthenticated && (
             <div className="hidden md:flex items-center gap-1">
               {modules.map(m => (
                 <Link key={m.path} to={m.path}
@@ -60,13 +47,13 @@ export default function Navbar() {
             </div>
           )}  
 
-            {isAuth  ? (
+            {isAuthenticated  ? (
               <UserMenu />
             ) : (
               <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">Iniciar sesión</Link>
             )}
 
-          {isAuth && (
+          {isAuthenticated && (
             <button onClick={() => setOpen(!open)}
               className="md:hidden text-white p-2 rounded-lg hover:bg-navy-800">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +67,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      {open && isAuth && (
+      {open && isAuthenticated && (
         <div className="md:hidden bg-navy-800 border-t border-navy-950 px-4 py-3 space-y-1">
           {modules.map(m => (
             <Link key={m.path} to={m.path} onClick={() => setOpen(false)}

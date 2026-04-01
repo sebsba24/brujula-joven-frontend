@@ -11,7 +11,6 @@ export default function TestFase2() {
         const res = await fetch("http://localhost:8000/preguntas/multiples");
         const data = await res.json();
 
-        console.log("Preguntas fase 2:", data);
         setPreguntas(data);
       } catch (error) {
         console.error("Error cargando preguntas:", error);

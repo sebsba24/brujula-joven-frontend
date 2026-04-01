@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
 
@@ -11,6 +12,7 @@ export default function LoginPage() {
   });
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({
@@ -24,16 +26,18 @@ export default function LoginPage() {
 
     try {
       const data = await loginUser(form);
+
+      console.log("LOGIN DATA:", data);
       
-      console.log("USER:", data.user);
-      
+      // Guardar token y usuario
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      console.log("USER:", data.user);
+      // Actualizar contexto (ESTO ES LA CLAVE)
+      login(data.user);
 
-      // redirigir
-      window.location.href = "/modulos";
+      // Redirección SIN recargar
+      navigate("/modulos");
 
     } catch (error) {
       alert(error.message);

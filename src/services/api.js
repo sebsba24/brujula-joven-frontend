@@ -1,73 +1,79 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Test conexión
-export const getHealth = async () => {
-  const res = await fetch(`${API_URL}/health`);
-  if (!res.ok) throw new Error("Error en backend");
-  return await res.json();
+// ==================== TOKEN ====================
+
+export const getToken = () => localStorage.getItem("token");
+
+export const setToken = (token) => {
+  localStorage.setItem("token", token);
 };
 
-// Obtener universidades
-export const getUniversidades = async () => {
-  const res = await fetch(`${API_URL}/universidades`);
-  return await res.json();
+export const removeToken = () => {
+  localStorage.removeItem("token");
 };
 
-// Obtener Preguntas
-export const getPreguntas = async () => {
-  const res = await fetch(`${API_URL}/preguntas/simple`);
-  if (!res.ok) {
-    throw new Error("Error al obtener preguntas");
+// ==================== FETCH BASE ====================
+
+const fetchAPI = async (url, options = {}) => {
+  const token = getToken();
+
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  return await res.json();
-};
-
-// Enviar datos (ejemplo POST)
-export const enviarDatos = async (data) => {
-  const res = await fetch(`${API_URL}/ruta-que-tengas`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+  const res = await fetch(`${API_URL}${url}`, {
+    ...options,
+    headers,
   });
 
-  return await res.json();
+  // Manejo de errores mejorado
+  if (!res.ok) {
+    let errorMessage = "Error en API";
+
+    try {
+      const error = await res.json();
+      errorMessage = error.detail || errorMessage;
+    } catch (_) {}
+
+    throw new Error(errorMessage);
+  }
+
+  return res.json();
 };
+
+// ==================== AUTH ====================
 
 export const loginUser = async (data) => {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  const res = await fetchAPI("/auth/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data), 
-  });
-
-  if (!res.ok) {
-    const error = await res.json();
-    console.error("Error backend:", error);
-    throw new Error(error.detail || "Error en login");
-  }
-
-  return await res.json();
-};
-
-// Registrar usuario
-export const registerUser = async (data) => {
-  const res = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.detail || "Error en registro");
-  }
+  setToken(res.access_token);
 
-  return await res.json();
+  return res;
 };
+
+export const logoutUser = () => {
+  removeToken();
+};
+
+// ==================== USUARIO ====================
+
+export const registerUser = async (data) => {
+  return fetchAPI("/usuarios", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+// ==================== DATA ====================
+
+export const getUniversidades = () => fetchAPI("/universidades");
+
+export const getPreguntas = () => fetchAPI("/preguntas/simple");

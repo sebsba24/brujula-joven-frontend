@@ -21,6 +21,14 @@ Para levantar las instancias en local se requiere lo siguiente:
 
 
 ### Ejecutar back python
+
+Instalar librerías necesarias:
+
+<code>
+pip install bcrypt==4.0.1
+</code>
+
+
 <code>
 uvicorn main:app --reload
 </code>

@@ -7,9 +7,9 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     nombre: "",
     email: "",
+    password: "",
     tipo_documento: "",
-    numero_documento: "",
-    password: ""
+    numero_documento: ""
   });
 
   const navigate = useNavigate();

@@ -183,5 +183,8 @@ class RespuestaBase(BaseModel):
 class RespuestaCreate(RespuestaBase):
     pass
 
+class RespuestaUpdate(BaseModel):
+    valor: Optional[int] = Field(None, ge=1, le=5)
+
 class RespuestaResponse(RespuestaBase, TimestampSchema):
     id_respuesta: int
