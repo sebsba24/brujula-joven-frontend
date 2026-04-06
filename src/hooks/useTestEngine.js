@@ -1,105 +1,129 @@
 import { useEffect, useState } from "react";
-import { getPreguntas } from "../services/api";
+import { getPreguntasPorRasgo, getPreguntasPorNivel, getPreguntasMultiplesPorGrupo } from "../services/api";
 
 export const useTestEngine = () => {
 
-  const [allQuestions, setAllQuestions] = useState([]);
   const [visibleQuestions, setVisibleQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({
     R: 0, I: 0, A: 0, S: 0, E: 0, C: 0
   });
 
   const [currentLevel, setCurrentLevel] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [isFinished, setIsFinished] = useState(false);
 
   // =========================
   // CARGA INICIAL
   // =========================
   useEffect(() => {
-    const fetchPreguntas = async () => {
-      try {
-        const data = await getPreguntas();
-        
-        // Adaptar estructura base
-        const preguntas = data.map(p => ({
-          id: p.id_pregunta,
-          text: p.descripcion,
-          rasgo: p.rasgo,
-          tipo: p.tipo,
-          nivel: p.nivel,
-          grupo: p.grupo || null,
-          valor: p.valor || 1
-        }));
-        console.log("DATA BACKEND:", data);
-        setAllQuestions(preguntas);
+  const fetchNivel1 = async () => {
+    try {
+      const data = await getPreguntasPorNivel(1);
 
-        // Inicial: solo nivel 1
-        setVisibleQuestions(preguntas.filter(p => p.nivel === 1));
+      const preguntas = data.map(p => ({
+        id: p.id_pregunta,
+        text: p.descripcion,
+        rasgo: p.rasgo,
+        tipo: "likert"
+      }));
 
-      } catch (error) {
-        console.error("Error cargando preguntas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setVisibleQuestions(preguntas);
 
-    fetchPreguntas();
+    } catch (error) {
+      console.error("Error cargando nivel 1:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    fetchNivel1();
   }, []);
 
   // =========================
   // RESPONDER
   // =========================
-  const answerQuestion = (question, value) => {
+  const answerQuestion = (question, option) => {
 
-    // Guardar respuesta
-    setAnswers(prev => ({
-      ...prev,
-      [`${question.rasgo}${question.id}`]: value
-    }));
-
-    // Actualizar puntaje
-    if (question.rasgo) {
+    if (question.tipo === "multiple") {
       setScores(prev => ({
         ...prev,
-        [question.rasgo]: prev[question.rasgo] + value
+        [option.rasgo]: prev[option.rasgo] + option.valor
       }));
+      return;
     }
+
+    // likert normal
+    setScores(prev => ({
+      ...prev,
+      [question.rasgo]: prev[question.rasgo] + option
+    }));
   };
 
   // =========================
   // SIGUIENTE NIVEL
   // =========================
-  const nextLevel = () => {
+  const nextLevel = async () => {
 
+    // =========================
     // NIVEL 1 → NIVEL 2
+    // =========================
     if (currentLevel === 1) {
-      const top2 = getTop(scores, 2);
+      const grupo = "A";
 
-      const nivel2 = allQuestions.filter(q =>
-        q.nivel === 2 && top2.includes(q.rasgo)
-      );
+      try {
+        const data = await getPreguntasMultiplesPorGrupo(grupo);
+        const preguntas = data.map(p => ({
+          id: p.id,
+          text: p.enunciado,
+          tipo: "multiple",
+          opciones: p.opciones.map(op => ({
+            id: op.id,
+            text: op.texto,
+            rasgo: op.rasgo,
+            valor: 5
+          }))
+        }));
 
-      setVisibleQuestions(nivel2);
-      setCurrentLevel(2);
+        setVisibleQuestions(preguntas);
+        setCurrentLevel(2);
+
+      } catch (error) {
+        console.error("Error cargando nivel 2:", error);
+      }
     }
 
+    // =========================
     // NIVEL 2 → NIVEL 3
+    // =========================
     else if (currentLevel === 2) {
-      const top1 = getTop(scores, 1)[0];
 
-      const nivel3 = allQuestions.filter(q =>
-        q.nivel === 3 && q.rasgo === top1
-      );
+      try {
+        const top1 = getTop(scores, 1)[0];
 
-      setVisibleQuestions(nivel3);
-      setCurrentLevel(3);
+        const data = await getPreguntasPorRasgo(top1);
+
+        //IMPORTANTE: mapear como nivel 3 tipo likert
+        const preguntasNivel3  = data
+          .filter(p => p.nivel === 3) // seguridad
+          .map(p => ({
+            id: p.id_pregunta,
+            text: p.descripcion,
+            rasgo: p.rasgo,
+            tipo: "likert"
+          }));
+
+        setVisibleQuestions(preguntasNivel3 );
+        setCurrentLevel(3);
+
+      } catch (error) {
+        console.error("Error cargando nivel 3:", error);
+      }
     }
 
+    // =========================
     // FINAL
+    // =========================
     else {
-      setIsFinished(true);
+      console.log("TEST FINALIZADO");
     }
   };
 
@@ -113,32 +137,12 @@ export const useTestEngine = () => {
       .map(e => e[0]);
   };
 
-  // =========================
-  // PROGRESO
-  // =========================
-  const progress = visibleQuestions.length
-    ? (Object.keys(answers).length / visibleQuestions.length) * 100
-    : 0;
-
-  // =========================
-  // RESULTADO JSON
-  // =========================
-  const buildResult = () => {
-    return {
-      respuestas: answers,
-      scores
-    };
-  };
-
   return {
     loading,
     visibleQuestions,
     answerQuestion,
     nextLevel,
     currentLevel,
-    scores,
-    progress,
-    isFinished,
-    buildResult
+    scores
   };
 };

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict
+
 
 # ==================== BASE MIXINS ====================
 
@@ -155,7 +156,7 @@ class UsuarioSubsidioResponse(UsuarioSubsidioBase, EstadoSchema, TimestampSchema
 # ==================== PREGUNTAS ====================
 
 class PreguntaBase(BaseModel):
-    rasgo: str = Field(..., pattern="^[RIASEC]$")
+    rasgo: str = Field(..., pattern="^[RIASECN]$")
     descripcion: str
     tipo: str = Field(default="opcion_multiple", max_length=20)
     nivel: int = Field(default=1, ge=1)
@@ -164,7 +165,7 @@ class PreguntaCreate(PreguntaBase):
     estado: bool = True
 
 class PreguntaUpdate(BaseModel):
-    rasgo: Optional[str] = Field(None, pattern="^[RIASEC]$")
+    rasgo: Optional[str] = Field(None, pattern="^[RIASECN]$")
     descripcion: Optional[str] = None
     tipo: Optional[str] = Field(None, max_length=20)
     nivel: Optional[int] = Field(None, ge=1)
@@ -173,18 +174,23 @@ class PreguntaUpdate(BaseModel):
 class PreguntaResponse(PreguntaBase, EstadoSchema, TimestampSchema):
     id_pregunta: int
 
-# ==================== RESPUESTAS ====================
+# ============= RESPUESTAS CUESTIONARIO =============
 
-class RespuestaBase(BaseModel):
+class RespuestaCuestionarioBase(BaseModel):
     id_usuario: int
     id_pregunta: int
     valor: int = Field(..., ge=1, le=5)
 
-class RespuestaCreate(RespuestaBase):
-    pass
+class RespuestaCuestionarioCreate(BaseModel):
+    id_usuario: int
+    respuestas: Dict[str, Dict[str, int]]
+    estado: bool = True
 
-class RespuestaUpdate(BaseModel):
+class RespuestaCuestionarioUpdate(BaseModel):
     valor: Optional[int] = Field(None, ge=1, le=5)
 
-class RespuestaResponse(RespuestaBase, TimestampSchema):
+class RespuestaCuestionarioResponse(TimestampSchema):
     id_respuesta: int
+    id_usuario: int
+    respuestas: Dict[str, Dict[str, int]]
+    estado: bool

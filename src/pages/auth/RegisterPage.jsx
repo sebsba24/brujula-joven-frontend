@@ -24,12 +24,8 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Enviando registro:", form); 
-
     try {
       const response = await registerUser(form);
-
-      console.log("Usuario creado:", response);
 
       alert("Registro exitoso");
 

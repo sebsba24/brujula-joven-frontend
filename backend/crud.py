@@ -135,7 +135,7 @@ usuario_rol_crud = CRUDBase(models.UsuarioRol, "id_usuario_rol")
 usuario_carrera_crud = CRUDBase(models.UsuarioCarrera, "id_usuario_carrera")
 usuario_subsidio_crud = CRUDBase(models.UsuarioSubsidio, "id_usuario_subsidio")
 pregunta_crud = CRUDBase(models.Pregunta, "id_pregunta")
-respuesta_crud = CRUDBase(models.RespuestaCuestionario, "id_respuesta")
+respuesta_cuestionario_crud = CRUDBase(models.RespuestaCuestionario, "id_respuesta")
 
 
 # ==================== MÉTODOS ESPECIALES ====================

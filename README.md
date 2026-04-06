@@ -19,16 +19,14 @@ If you are developing a production application, we recommend using TypeScript wi
 
 Para levantar las instancias en local se requiere lo siguiente:
 
+### Instalar librerías python necesarias:
+
+```cmd
+pip install bcrypt==4.0.1
+```
 
 ### Ejecutar back python
 
-Instalar librerías necesarias:
-
-<code>
-pip install bcrypt==4.0.1
-</code>
-
-
-<code>
+```python
 uvicorn main:app --reload
-</code>
+```

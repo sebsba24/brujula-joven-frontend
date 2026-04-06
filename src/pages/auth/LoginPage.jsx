@@ -26,15 +26,13 @@ export default function LoginPage() {
 
     try {
       const data = await loginUser(form);
-
-      console.log("LOGIN DATA:", data);
       
       // Guardar token y usuario
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Actualizar contexto (ESTO ES LA CLAVE)
-      login(data.user);
+      login(data.user, data.access_token);
 
       // Redirección SIN recargar
       navigate("/modulos");

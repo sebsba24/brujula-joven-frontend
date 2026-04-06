@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
 from database import Base
 
 
@@ -79,7 +80,7 @@ class Usuario(Base, TimestampMixin, EstadoMixin):
     usuario_roles = relationship("UsuarioRol", back_populates="usuario", cascade="all, delete-orphan")
     usuario_carreras = relationship("UsuarioCarrera", back_populates="usuario", cascade="all, delete-orphan")
     usuario_subsidios = relationship("UsuarioSubsidio", back_populates="usuario", cascade="all, delete-orphan")
-    respuestas = relationship("RespuestaCuestionario", back_populates="usuario", cascade="all, delete-orphan")
+    respuestas_cuestionario = relationship("RespuestaCuestionario", back_populates="usuario", cascade="all, delete-orphan")
 
 
 # ==================== RELACIONES ====================
@@ -132,30 +133,21 @@ class Pregunta(Base, TimestampMixin, EstadoMixin):
         CheckConstraint("rasgo IN ('R','I','A','S','E','C')", name="pregunta_rasgo_check"),
     )
 
-    respuestas = relationship("RespuestaCuestionario", back_populates="pregunta", cascade="all, delete-orphan")
-
-
 class PreguntaMultiple(Base):
     __tablename__ = "preguntas_multiples"
 
-    id = Column(Integer, primary_key=True, index=True)
-    id_enunciado = Column(Integer, ForeignKey("preguntas.id_pregunta"))
-    id_pregunta = Column(Integer, ForeignKey("preguntas.id_pregunta"))
+    id_enunciado = Column(Integer, ForeignKey("preguntas.id_pregunta"), primary_key=True)
+    id_pregunta = Column(Integer, ForeignKey("preguntas.id_pregunta"), primary_key=True)
+    grupo = Column(String(1), nullable=False)
 
-
-# ==================== RESPUESTAS ====================
+# ==================== RESPUESTAS CUESTIONARIO ====================
 
 class RespuestaCuestionario(Base, TimestampMixin):
     __tablename__ = "respuestas_cuestionario"
 
     id_respuesta = Column(Integer, primary_key=True, index=True)
-    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario", ondelete="CASCADE"))
-    id_pregunta = Column(Integer, ForeignKey("preguntas.id_pregunta", ondelete="CASCADE"))
-    valor = Column(Integer)
+    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"))
+    respuestas = Column(JSONB)
+    estado = Column(Boolean, default=True)
 
-    __table_args__ = (
-        CheckConstraint("valor >= 1 AND valor <= 5", name="respuesta_valor_check"),
-    )
-
-    usuario = relationship("Usuario", back_populates="respuestas")
-    pregunta = relationship("Pregunta", back_populates="respuestas")
+    usuario = relationship("Usuario", back_populates="respuestas_cuestionario")

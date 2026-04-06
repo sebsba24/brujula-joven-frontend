@@ -2,12 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Type
+from typing import List
+from security import get_current_user
 
 from database import get_db
 import crud
 import schemas
-import models
 from routes import auth
 
 app = FastAPI(
@@ -24,6 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+VALID_RASGOS = {"R", "I", "A", "S", "E", "C", "N"}
 # ==================== AUTH ====================
 app.include_router(auth.router)
 
@@ -85,6 +86,108 @@ def register_crud_routes(
             raise HTTPException(404, f"{name} not found")
         return None
 
+# ==================== ENDPOINTS ESPECIALES ====================
+
+# Carreras por universidad
+@app.get("/universidades/{id_universidad}/carreras", tags=["Carreras"])
+async def get_carreras_by_universidad(id_universidad: int, db: AsyncSession = Depends(get_db)):
+    return await crud.carrera_crud.get_filtered(db, {"id_universidad": id_universidad})
+
+
+# Roles por usuario
+@app.get("/usuarios/{id_usuario}/roles", tags=["Usuario Roles"])
+async def get_roles_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
+    return await crud.usuario_rol_crud.get_filtered(db, {"id_usuario": id_usuario})
+
+
+# Carreras por usuario
+@app.get("/usuarios/{id_usuario}/carreras", tags=["Usuario Carreras"])
+async def get_carreras_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
+    return await crud.usuario_carrera_crud.get_filtered(db, {"id_usuario": id_usuario})
+
+
+# Subsidios por usuario
+@app.get("/usuarios/{id_usuario}/subsidios", tags=["Usuario Subsidios"])
+async def get_subsidios_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
+    return await crud.usuario_subsidio_crud.get_filtered(db, {"id_usuario": id_usuario})
+
+
+# ==================== PREGUNTAS ESPECIALES ====================
+@app.get("/preguntas/multiples/{grupo}", tags=["Preguntas"])
+async def get_preguntas_multiples_por_grupo(grupo: str, db: AsyncSession = Depends(get_db)):
+    try:
+        preguntas = await crud.pregunta_crud.get_all(db)
+        relaciones = await crud.get_preguntas_multiples(db)
+
+        preguntas_dict = {p.id_pregunta: p for p in preguntas}
+        resultado = {}
+
+        for rel in relaciones:
+
+            if rel.grupo != grupo:
+                continue
+
+            enunciado = preguntas_dict.get(rel.id_enunciado)
+            opcion = preguntas_dict.get(rel.id_pregunta)
+
+            if not enunciado or not opcion:
+                continue
+
+            if rel.id_enunciado not in resultado:
+                resultado[rel.id_enunciado] = {
+                    "id": enunciado.id_pregunta,
+                    "enunciado": enunciado.descripcion,
+                    "opciones": []
+                }
+
+            resultado[rel.id_enunciado]["opciones"].append({
+                "id": opcion.id_pregunta,
+                "texto": opcion.descripcion,
+                "rasgo": opcion.rasgo
+            })
+
+        return list(resultado.values())
+
+    except Exception as e:
+        print("ERROR CRITICO:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/preguntas/nivel/{nivel}", response_model=List[schemas.PreguntaResponse],tags=["Preguntas"])
+async def get_preguntas_by_nivel(nivel: int, db: AsyncSession = Depends(get_db)):
+    return await crud.pregunta_crud.get_filtered(db, {"nivel": nivel})
+
+
+@app.get("/preguntas/rasgo/{rasgo}", response_model=List[schemas.PreguntaResponse], tags=["Preguntas"])
+async def get_preguntas_by_rasgo(rasgo: str, db: AsyncSession = Depends(get_db)):
+    if rasgo not in VALID_RASGOS:
+        raise HTTPException(status_code=400, detail="Rasgo no válido")
+    return await crud.pregunta_crud.get_filtered(db, {"rasgo": rasgo})
+
+# ==================== RESPUESTAS CUESTIONARIO ====================
+
+@app.post("/respuestas-cuestionario/guardar", tags=["Respuestas Cuestionario"])
+async def guardar_respuestas_cuestionario(
+    payload: schemas.RespuestaCuestionarioCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    try:
+        data = {
+            "id_usuario": current_user.id_usuario,
+            "respuestas": payload.model_dump(),
+            "estado": True
+        }
+
+        result = await crud.respuesta_cuestionario_crud.create(db, data)
+
+        return {
+            "message": "Respuestas guardadas correctamente",
+            "id_respuesta": result.id_respuesta
+        }
+
+    except Exception as e:
+        print("ERROR GUARDANDO RESPUESTAS:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== REGISTRO DE ENTIDADES ====================
 
@@ -137,73 +240,9 @@ register_crud_routes(
 )
 
 register_crud_routes(
-    "respuestas",
-    crud.respuesta_crud,
-    schemas.RespuestaResponse,
-    schemas.RespuestaCreate,
-    schemas.RespuestaUpdate
+    "respuestas_cuestionario",
+    crud.respuesta_cuestionario_crud,
+    schemas.RespuestaCuestionarioResponse,
+    schemas.RespuestaCuestionarioCreate,
+    schemas.RespuestaCuestionarioUpdate
 )
-
-
-# ==================== ENDPOINTS ESPECIALES ====================
-
-# Carreras por universidad
-@app.get("/universidades/{id_universidad}/carreras", tags=["Carreras"])
-async def get_carreras_by_universidad(id_universidad: int, db: AsyncSession = Depends(get_db)):
-    return await crud.carrera_crud.get_filtered(db, {"id_universidad": id_universidad})
-
-
-# Roles por usuario
-@app.get("/usuarios/{id_usuario}/roles", tags=["Usuario Roles"])
-async def get_roles_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
-    return await crud.usuario_rol_crud.get_filtered(db, {"id_usuario": id_usuario})
-
-
-# Carreras por usuario
-@app.get("/usuarios/{id_usuario}/carreras", tags=["Usuario Carreras"])
-async def get_carreras_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
-    return await crud.usuario_carrera_crud.get_filtered(db, {"id_usuario": id_usuario})
-
-
-# Subsidios por usuario
-@app.get("/usuarios/{id_usuario}/subsidios", tags=["Usuario Subsidios"])
-async def get_subsidios_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
-    return await crud.usuario_subsidio_crud.get_filtered(db, {"id_usuario": id_usuario})
-
-
-# ==================== PREGUNTAS ESPECIALES ====================
-
-@app.get("/preguntas/nivel/{nivel}", tags=["Preguntas"])
-async def get_preguntas_by_nivel(nivel: int, db: AsyncSession = Depends(get_db)):
-    return await crud.pregunta_crud.get_filtered(db, {"nivel": nivel})
-
-
-@app.get("/preguntas/multiples", tags=["Preguntas"])
-async def get_preguntas_multiples(db: AsyncSession = Depends(get_db)):
-    preguntas = await crud.pregunta_crud.get_all(db)
-    relaciones = await crud.pregunta_crud.get_multiples(db)
-
-    preguntas_dict = {p.id_pregunta: p for p in preguntas}
-    resultado = {}
-
-    for rel in relaciones:
-        enunciado = preguntas_dict.get(rel.id_enunciado)
-        opcion = preguntas_dict.get(rel.id_pregunta)
-
-        if not enunciado or not opcion:
-            continue
-
-        if rel.id_enunciado not in resultado:
-            resultado[rel.id_enunciado] = {
-                "id": enunciado.id_pregunta,
-                "enunciado": enunciado.descripcion,
-                "opciones": []
-            }
-
-        resultado[rel.id_enunciado]["opciones"].append({
-            "id": opcion.id_pregunta,
-            "texto": opcion.descripcion,
-            "rasgo": opcion.rasgo
-        })
-
-    return list(resultado.values())

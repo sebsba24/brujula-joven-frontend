@@ -33,14 +33,9 @@ const fetchAPI = async (url, options = {}) => {
 
   // Manejo de errores mejorado
   if (!res.ok) {
-    let errorMessage = "Error en API";
-
-    try {
-      const error = await res.json();
-      errorMessage = error.detail || errorMessage;
-    } catch (_) {}
-
-    throw new Error(errorMessage);
+    const error = await res.json();
+    console.error("ERROR BACKEND:", error);
+    throw new Error(JSON.stringify(error));
   }
 
   return res.json();
@@ -76,4 +71,21 @@ export const registerUser = async (data) => {
 
 export const getUniversidades = () => fetchAPI("/universidades");
 
-export const getPreguntas = () => fetchAPI("/preguntas/simple");
+export const getPreguntasPorNivel = async (nivel) => {
+  return fetchAPI(`/preguntas/nivel/${nivel}`);
+};
+
+export const getPreguntasPorRasgo = async (rasgo) => {
+  return fetchAPI(`/preguntas/rasgo/${rasgo}`);
+};
+
+export const getPreguntasMultiplesPorGrupo = async (grupo) => {
+  return fetchAPI(`/preguntas/multiples/${grupo}`);
+};
+
+export const guardarRespuestas = async (data) => {
+  return fetchAPI("/respuestas-cuestionario/guardar", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+};
