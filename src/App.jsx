@@ -7,6 +7,7 @@ import EducacionPage from './pages/modules/EducacionPage'
 import LegalPage     from './pages/modules/LegalPage'
 import FinancieroPage from './pages/modules/FinancieroPage'
 import TestPage from './pages/modules/TestPage'
+import Perfil from './pages/modules/Perfil'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPassword from './pages/auth/ForgotPassword'
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/modulos/legal"      element={<ProtectedRoute><LegalPage /></ProtectedRoute>} />
             <Route path="/modulos/financiero" element={<ProtectedRoute><FinancieroPage /></ProtectedRoute>} />
             <Route path="/modulos/test"       element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
+            <Route path="/perfil"             element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

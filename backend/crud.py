@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.exc import IntegrityError
 from typing import TypeVar, Generic, Type, Optional, List, Dict, Any
 from fastapi import HTTPException
@@ -143,3 +143,15 @@ respuesta_cuestionario_crud = CRUDBase(models.RespuestaCuestionario, "id_respues
 async def get_preguntas_multiples(db: AsyncSession):
     result = await db.execute(select(models.PreguntaMultiple))
     return list(result.scalars().all())
+
+async def get_last_respuesta_by_usuario(db: AsyncSession, id_usuario: int):
+    query = (
+        select(models.RespuestaCuestionario)
+        .where(models.RespuestaCuestionario.id_usuario == id_usuario)
+        .where(models.RespuestaCuestionario.estado == True)
+        .order_by(desc(models.RespuestaCuestionario.id_respuesta))
+        .limit(1)
+    )
+
+    result = await db.execute(query)
+    return result.scalar_one_or_none()

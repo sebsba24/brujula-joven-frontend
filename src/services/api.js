@@ -89,3 +89,10 @@ export const guardarRespuestas = async (data) => {
     body: JSON.stringify(data)
   });
 };
+
+export const getPerfilByUsuario = async (id_usuario) => {
+  return await fetchAPI(`/usuarios/${id_usuario}/perfil`);
+};
+
+export const getRecomendacionesByUsuario = (id_usuario) =>
+  fetchAPI(`/usuarios/${id_usuario}/recomendaciones`);

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
+from collections import defaultdict
 from typing import List
 from security import get_current_user
 
@@ -85,6 +86,178 @@ def register_crud_routes(
         if not deleted:
             raise HTTPException(404, f"{name} not found")
         return None
+    
+
+# ===================== LÓGICA DE PERFILES =====================    
+
+MAPA_CARRERAS = {
+    "R": [
+        "Ingeniería Mecánica",
+        "Ingeniería Civil",
+        "Técnico en Electrónica",
+        "Mecánica Automotriz",
+        "Construcción"
+    ],
+    "I": [
+        "Ingeniería de Sistemas",
+        "Ciencia de Datos",
+        "Investigación Científica",
+        "Matemáticas",
+        "Física"
+    ],
+    "A": [
+        "Diseño Gráfico",
+        "Arquitectura",
+        "Publicidad",
+        "Artes Visuales",
+        "Producción Multimedia"
+    ],
+    "S": [
+        "Psicología",
+        "Trabajo Social",
+        "Docencia",
+        "Enfermería",
+        "Coaching"
+    ],
+    "E": [
+        "Administración de Empresas",
+        "Marketing",
+        "Negocios Internacionales",
+        "Emprendimiento",
+        "Ventas"
+    ],
+    "C": [
+        "Contaduría",
+        "Administración",
+        "Logística",
+        "Gestión Documental",
+        "Finanzas"
+    ]
+}
+
+MAPA_COMBINADO = {
+    ("R", "I"): [
+        "Ingeniería Mecánica",
+        "Ingeniería Electrónica",
+        "Ingeniería de Sistemas",
+        "Robótica",
+        "Mecatrónica"
+    ],
+    ("R", "E"): [
+        "Ingeniería Industrial",
+        "Administración de Proyectos",
+        "Construcción",
+        "Logística",
+        "Gestión de Operaciones"
+    ],
+    ("I", "E"): [
+        "Ciencia de Datos",
+        "Ingeniería de Sistemas",
+        "Business Intelligence",
+        "Finanzas",
+        "Consultoría"
+    ]
+}
+
+def calcular_perfil(respuestas_json: dict):
+    niveles = respuestas_json.get("respuestas", {})
+
+    pesos_nivel = {
+        "nivel1": 3,
+        "nivel2": 2,
+        "nivel3": 1
+    }
+
+    niveles_scores = {}
+
+    # ====================
+    # 1. CALCULAR POR NIVEL
+    # ====================
+    for nivel, respuestas in niveles.items():
+
+        if nivel == "nivel2":
+            valores = list(respuestas.values())
+            if len(valores) > 0 and len(set(valores)) == 1:
+                continue  # ignora nivel2 completamente
+
+        temp_scores = defaultdict(float)
+
+        for key, value in respuestas.items():
+
+            # VALIDACIONES
+            if not isinstance(key, str) or len(key) == 0:
+                continue
+
+            if not isinstance(value, (int, float)):
+                continue
+
+            if value < 1 or value > 5:
+                continue
+
+            rasgo = key[0]
+
+            if rasgo in VALID_RASGOS:
+                temp_scores[rasgo] += value
+
+        total_nivel = sum(temp_scores.values()) or 1
+
+        # NORMALIZAR NIVEL (0–1)
+        for r in temp_scores:
+            temp_scores[r] = temp_scores[r] / total_nivel
+
+        niveles_scores[nivel] = temp_scores
+
+    # ====================
+    # 2. COMBINAR NIVELES
+    # ====================
+    final_scores = defaultdict(float)
+
+    for nivel, scores in niveles_scores.items():
+        peso = pesos_nivel.get(nivel, 1)
+
+        for r in ["R", "I", "A", "S", "E", "C"]:
+            final_scores[r] += scores.get(r, 0) * peso
+
+    # ====================
+    # 3. NORMALIZAR FINAL
+    # ====================
+    total_final = sum(final_scores.values()) or 1
+
+    resultado = {}
+
+    for r in ["R", "I", "A", "S", "E", "C"]:
+        resultado[r] = round((final_scores[r] / total_final) * 100, 2)
+
+    top = sorted(resultado.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        "perfil": resultado,
+        "dominante": top[0][0],
+        "top3": [t[0] for t in top[:3]]
+    }
+
+def generar_recomendaciones(perfil_data: dict):
+    perfil = perfil_data["perfil"]
+    top3 = perfil_data["top3"]
+
+    dominante = perfil_data["dominante"]
+
+    # 🎯 PRINCIPAL (una sola carrera fuerte)
+    principal_lista = MAPA_CARRERAS.get(dominante, [])
+    principal = principal_lista[0] if principal_lista else "Sin definir"
+
+    # 🔹 SECUNDARIAS (sin porcentaje)
+    secundarias = []
+
+    for rasgo in top3[1:]:
+        secundarias.extend(MAPA_CARRERAS.get(rasgo, []))
+
+    secundarias = list(dict.fromkeys(secundarias))[:6]
+
+    return {
+        "principal": principal,
+        "secundarias": secundarias
+    }
 
 # ==================== ENDPOINTS ESPECIALES ====================
 
@@ -111,8 +284,46 @@ async def get_carreras_by_usuario(id_usuario: int, db: AsyncSession = Depends(ge
 async def get_subsidios_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
     return await crud.usuario_subsidio_crud.get_filtered(db, {"id_usuario": id_usuario})
 
+# Perfil RIASEC por usuario
+@app.get("/usuarios/{id_usuario}/perfil", tags=["Usuario Perfil"])
+async def get_perfil_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
 
-# ==================== PREGUNTAS ESPECIALES ====================
+    data = await crud.respuesta_cuestionario_crud.get_filtered(
+        db,
+        {"id_usuario": id_usuario}
+    )
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No hay respuestas para este usuario")
+
+    # tomar la última respuesta
+    ultima = sorted(data, key=lambda x: x.id_respuesta, reverse=True)[0]
+
+    return calcular_perfil(ultima.respuestas)
+
+@app.get("/usuarios/{id_usuario}/recomendaciones", tags=["Usuario Perfil"])
+async def get_recomendaciones_by_usuario(id_usuario: int, db: AsyncSession = Depends(get_db)):
+
+    data = await crud.respuesta_cuestionario_crud.get_filtered(
+        db,
+        {"id_usuario": id_usuario}
+    )
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No hay respuestas para este usuario")
+
+    ultima = sorted(data, key=lambda x: x.id_respuesta, reverse=True)[0]
+
+    perfil = calcular_perfil(ultima.respuestas)
+
+    recomendaciones = generar_recomendaciones(perfil)
+
+    return {
+        "perfil": perfil,
+        "recomendaciones": recomendaciones
+    }
+
+# Preguntas múltiples por grupo
 @app.get("/preguntas/multiples/{grupo}", tags=["Preguntas"])
 async def get_preguntas_multiples_por_grupo(grupo: str, db: AsyncSession = Depends(get_db)):
     try:
@@ -163,8 +374,7 @@ async def get_preguntas_by_rasgo(rasgo: str, db: AsyncSession = Depends(get_db))
         raise HTTPException(status_code=400, detail="Rasgo no válido")
     return await crud.pregunta_crud.get_filtered(db, {"rasgo": rasgo})
 
-# ==================== RESPUESTAS CUESTIONARIO ====================
-
+# Guardar respuestas de cuestionario
 @app.post("/respuestas-cuestionario/guardar", tags=["Respuestas Cuestionario"])
 async def guardar_respuestas_cuestionario(
     payload: schemas.RespuestaCuestionarioCreate,

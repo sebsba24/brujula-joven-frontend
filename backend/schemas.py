@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 # ==================== BASE MIXINS ====================
@@ -194,3 +194,11 @@ class RespuestaCuestionarioResponse(TimestampSchema):
     id_usuario: int
     respuestas: Dict[str, Dict[str, int]]
     estado: bool
+
+# ================ CALCULO DE PERFIL ================
+
+class PerfilResponse(BaseModel):
+    perfil: Dict[str, float]
+    dominante: str
+    dominante_nombre: str
+    top3: List[str]
