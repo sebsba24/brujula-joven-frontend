@@ -96,3 +96,17 @@ export const getPerfilByUsuario = async (id_usuario) => {
 
 export const getRecomendacionesByUsuario = (id_usuario) =>
   fetchAPI(`/usuarios/${id_usuario}/recomendaciones`);
+
+// ==================== FINANCIERO ====================
+
+export const guardarPerfilFinanciero = (data) =>
+  fetchAPI("/financiero/guardar", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const getPerfilFinanciero = (id_usuario) =>
+  fetchAPI(`/usuarios/${id_usuario}/perfil-financiero`);
+
+export const getRecomendacionesEducacion = (id_usuario) =>
+  fetchAPI(`/usuarios/${id_usuario}/recomendaciones-educacion`);
