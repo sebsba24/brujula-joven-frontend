@@ -118,11 +118,13 @@ export default function EducacionPage() {
   const [mostrarBecas, setMostrarBecas] = useState(false)
 
   useEffect(() => {
+    if (!token) return           // token aún no cargado desde localStorage
     if (!user?.sub) { setCargando(false); return }
+    setCargando(true)
     getRecomendacionesEducacion(user.sub)
       .then(res => { setData(res); setCargando(false) })
       .catch(() => { setCargando(false) })
-  }, [])
+  }, [token])
 
   const programasFiltrados = (data?.programas || []).filter(p => {
     if (filtroTipo  !== 'Todos' && p.tipo  !== filtroTipo)  return false

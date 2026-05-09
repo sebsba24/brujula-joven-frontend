@@ -108,5 +108,11 @@ export const guardarPerfilFinanciero = (data) =>
 export const getPerfilFinanciero = (id_usuario) =>
   fetchAPI(`/usuarios/${id_usuario}/perfil-financiero`);
 
+export const eliminarPerfilFinanciero = (id_usuario) =>
+  fetchAPI(`/usuarios/${id_usuario}/perfil-financiero`, { method: "DELETE" });
+
 export const getRecomendacionesEducacion = (id_usuario) =>
   fetchAPI(`/usuarios/${id_usuario}/recomendaciones-educacion`);
+
+export const eliminarRespuestasCuestionario = (id_usuario) =>
+  fetchAPI(`/usuarios/${id_usuario}/respuestas-cuestionario`, { method: "DELETE" });

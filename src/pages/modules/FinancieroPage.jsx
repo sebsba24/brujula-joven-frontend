@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import { guardarPerfilFinanciero, getPerfilFinanciero } from '../../services/api'
+import { guardarPerfilFinanciero, getPerfilFinanciero, eliminarPerfilFinanciero } from '../../services/api'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 // ==================== OPCIONES ====================
 
@@ -100,7 +101,7 @@ function EstratoSelector({ value, onChange }) {
 
 // ==================== PANTALLA DE RESULTADO ====================
 
-function ResultadoPerfil({ perfil, onReintentar }) {
+function ResultadoPerfil({ perfil, onReintentar, onSolicitarReinicio }) {
   const navigate = useNavigate()
 
   const capacidadConfig = {
@@ -162,7 +163,7 @@ function ResultadoPerfil({ perfil, onReintentar }) {
           <button onClick={() => navigate('/modulos/educacion')} className="btn-primary">
             Ver recomendaciones educativas
           </button>
-          <button onClick={onReintentar} className="btn-secondary">
+          <button onClick={onSolicitarReinicio} className="btn-secondary">
             Actualizar perfil
           </button>
         </div>
@@ -197,18 +198,22 @@ export default function FinancieroPage() {
 
   const [paso, setPaso] = useState(1)
   const [form, setForm] = useState(INICIAL)
-  const [perfil, setPerfil] = useState(null)        // resultado del backend
+  const [perfil, setPerfil] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
 
-  // Al montar: verificar si ya existe un perfil
+  // Verificar perfil cada vez que el token esté disponible
   useEffect(() => {
+    if (!token) return          // token aún no cargado desde localStorage
     if (!user?.sub) { setCargando(false); return }
+    setCargando(true)
     getPerfilFinanciero(user.sub)
       .then(data => { setPerfil(data); setCargando(false) })
       .catch(() => { setCargando(false) })
-  }, [])
+  }, [token])
 
   const set = (field) => (val) => setForm(prev => ({ ...prev, [field]: val }))
 
@@ -254,6 +259,22 @@ export default function FinancieroPage() {
     setPaso(1)
   }
 
+  const handleSolicitarReinicio = () => setModalAbierto(true)
+
+  const handleConfirmarReinicio = async () => {
+    setEliminando(true)
+    try {
+      await eliminarPerfilFinanciero(user.sub)
+      setModalAbierto(false)
+      reiniciar()
+    } catch {
+      setModalAbierto(false)
+      reiniciar() // si ya no existe en BD, igual dejamos reiniciar
+    } finally {
+      setEliminando(false)
+    }
+  }
+
   // ── Cargando ──────────────────────────────────────────────
   if (cargando) {
     return (
@@ -283,9 +304,22 @@ export default function FinancieroPage() {
         </div>
       </div>
 
+      {/* Modal de confirmación */}
+      <ConfirmModal
+        open={modalAbierto}
+        danger
+        title="¿Realizar el formulario nuevamente?"
+        message="Tu perfil financiero actual será eliminado permanentemente. Tendrás que completar el formulario de nuevo para obtener nuevas recomendaciones."
+        confirmLabel="Sí, eliminar y reiniciar"
+        cancelLabel="Cancelar"
+        loading={eliminando}
+        onConfirm={handleConfirmarReinicio}
+        onCancel={() => setModalAbierto(false)}
+      />
+
       {/* ── Resultado (perfil ya guardado) ── */}
       {perfil ? (
-        <ResultadoPerfil perfil={perfil} onReintentar={reiniciar} />
+        <ResultadoPerfil perfil={perfil} onReintentar={reiniciar} onSolicitarReinicio={handleSolicitarReinicio} />
       ) : (
         <>
           {/* Indicador de pasos */}
