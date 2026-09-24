@@ -66,6 +66,19 @@ function BannerIncompleto({ sinFinanciero, sinVocacional }) {
   )
 }
 
+function ScoreBar({ score }) {
+  const pct = Math.round((score || 0) * 100)
+  const color = pct >= 70 ? 'bg-emerald-400' : pct >= 45 ? 'bg-yellow-400' : 'bg-gray-300'
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+        <div className={`${color} h-1.5 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs font-semibold text-gray-500 shrink-0">{pct}%</span>
+    </div>
+  )
+}
+
 function ProgramaCard({ prog }) {
   const costo = COSTO_LABEL[prog.costo] || COSTO_LABEL.medio
   const tipo  = TIPO_COLOR[prog.tipo]   || 'bg-gray-100 text-gray-700'
@@ -74,9 +87,10 @@ function ProgramaCard({ prog }) {
   return (
     <div className="card p-5 flex flex-col gap-3">
       <div className="flex justify-between items-start gap-2">
-        <div>
+        <div className="flex-1 min-w-0">
           <h3 className="font-bold text-gray-900 text-sm leading-tight">{prog.nombre}</h3>
           <p className="text-gray-500 text-xs mt-0.5">{prog.inst} · {prog.ciudad}</p>
+          {prog.score !== undefined && <ScoreBar score={prog.score} />}
         </div>
         {prog.con_beca && (
           <span className="text-xs bg-lime-100 text-lime-800 px-2 py-0.5 rounded-full font-semibold shrink-0 ml-1">
