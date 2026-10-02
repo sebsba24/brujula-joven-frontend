@@ -5,6 +5,7 @@ import { guardarRespuestas, getPerfilByUsuario, eliminarRespuestasCuestionario }
 import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import ConfirmModal from "../../components/ui/ConfirmModal";
+import { Compass, CheckCircle2 } from 'lucide-react'
 
 // ==================== CONSTANTES ====================
 
@@ -38,8 +39,8 @@ function TestCompletado({ perfil, onSolicitarReinicio }) {
       </div>
 
       <div className="card p-8 text-center mb-6">
-        <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-          ✅
+        <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="w-8 h-8 text-lime-500" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Ya completaste el test vocacional</h1>
         <p className="text-gray-400 text-sm mb-6">
@@ -176,14 +177,15 @@ export default function TestPage() {
     setEliminando(true);
     try {
       await eliminarRespuestasCuestionario(user.sub);
-    } catch {
-      // Si ya no existe, continuamos igual
-    } finally {
-      setEliminando(false);
       setModalAbierto(false);
       setYaCompletado(false);
       setPerfilExistente(null);
       setAnswers({ nivel1: {}, nivel2: {}, nivel3: {} });
+    } catch {
+      alert('No se pudieron eliminar las respuestas. Intenta de nuevo.');
+      setModalAbierto(false);
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -242,7 +244,9 @@ export default function TestPage() {
 
       {/* Título */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">🧭</div>
+        <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0">
+          <Compass className="w-7 h-7 text-blue-600" />
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Test Vocacional</h1>
           <p className="text-gray-400 mt-1">Nivel {currentLevel} de 3</p>

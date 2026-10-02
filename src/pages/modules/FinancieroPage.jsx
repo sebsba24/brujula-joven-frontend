@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { jwtDecode } from 'jwt-decode'
 import { guardarPerfilFinanciero, getPerfilFinanciero, eliminarPerfilFinanciero } from '../../services/api'
 import ConfirmModal from '../../components/ui/ConfirmModal'
+import { Wallet, CheckCircle2, XCircle } from 'lucide-react'
 
 // ==================== OPCIONES ====================
 
@@ -133,7 +134,10 @@ function ResultadoPerfil({ perfil, onReintentar, onSolicitarReinicio }) {
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Elegible para subsidios</p>
             <p className="font-bold text-gray-800">
-              {perfil.elegible_subsidios ? '✅ Sí' : '❌ No'}
+              {perfil.elegible_subsidios
+                ? <span className="flex items-center gap-1 text-lime-600"><CheckCircle2 className="w-4 h-4" />Sí</span>
+                : <span className="flex items-center gap-1 text-red-500"><XCircle className="w-4 h-4" />No</span>
+              }
             </p>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
@@ -295,7 +299,9 @@ export default function FinancieroPage() {
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">💰</div>
+        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center shrink-0">
+          <Wallet className="w-7 h-7 text-lime-600" />
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Módulo Financiero</h1>
           <p className="text-gray-400 mt-1">

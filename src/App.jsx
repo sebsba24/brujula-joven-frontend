@@ -12,6 +12,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import './styles/tokens.css'
+import ChatWidget from './components/ui/ChatWidget'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/perfil"             element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
           </Routes>
         </main>
+        <ChatWidget />
       </div>
     </BrowserRouter>
   )

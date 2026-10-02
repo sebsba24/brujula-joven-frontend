@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { UserCircle } from 'lucide-react'
 
 export default function UserMenu() {
   const [user, setUser] = useState(null);
@@ -37,8 +38,8 @@ export default function UserMenu() {
     >
         <div className="flex items-center gap-2 cursor-pointer">
         {/* ICONO */}
-        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-lg">
-            👤
+        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+            <UserCircle className="w-6 h-6 text-gray-300" />
         </div>
 
         {/* NOMBRE */}

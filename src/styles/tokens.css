@@ -1,29 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --c-navy-950: #041820;
-  --c-navy-900: #062433;
-  --c-navy-800: #0A3347;
-  --c-blue-400:  #28B6E8;
-  --c-blue-600:  #1580A8;
-  --c-lime-400:  #6DDF1A;
-  --c-lime-600:  #47A00F;
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #F4F7F9;
+    color: #1A2E37;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
 }
 
-* { box-sizing: border-box; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F4F7F9; color: #1A2E37; }
-
-.btn-primary {
-  @apply bg-lime-400 text-navy-900 font-semibold px-5 py-2.5 rounded-lg
-         hover:bg-lime-600 hover:text-white transition-all duration-200 text-sm;
-}
-.btn-secondary {
-  @apply border border-blue-400 text-blue-400 font-semibold px-5 py-2.5 rounded-lg
-         hover:bg-blue-400 hover:text-white transition-all duration-200 text-sm;
-}
-.card {
-  @apply bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-lime-400 text-navy-900 font-semibold px-5 py-2.5 rounded-xl
+           hover:bg-lime-600 hover:text-white
+           transition-all duration-200 text-sm cursor-pointer;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border border-blue-400 text-blue-600 font-semibold px-5 py-2.5 rounded-xl
+           hover:bg-blue-400 hover:text-white
+           transition-all duration-200 text-sm cursor-pointer;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           bg-red-500 text-white font-semibold px-5 py-2.5 rounded-xl
+           hover:bg-red-600
+           transition-all duration-200 text-sm cursor-pointer;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-gray-200 shadow-sm
+           hover:shadow-md transition-all duration-200;
+  }
+  .input {
+    @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm
+           focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
+           bg-white placeholder-gray-400 transition-all;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
 }

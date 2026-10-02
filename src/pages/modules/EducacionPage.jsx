@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { jwtDecode } from 'jwt-decode'
 import { getRecomendacionesEducacion } from '../../services/api'
+import { GraduationCap, Search, ClipboardList, CheckCircle2 } from 'lucide-react'
 
 // ==================== HELPERS ====================
 
@@ -169,7 +170,9 @@ export default function EducacionPage() {
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">🎓</div>
+        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center shrink-0">
+          <GraduationCap className="w-7 h-7 text-lime-600" />
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Módulo de Educación</h1>
           <p className="text-gray-400 mt-1">
@@ -223,7 +226,10 @@ export default function EducacionPage() {
               {MODALIDAD_LABEL[data.modalidad_recomendada] || 'Presencial'}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              {data.elegible_subsidios ? '✅ Elegible para subsidios' : 'Sin elegibilidad de subsidios'}
+              {data.elegible_subsidios
+                ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-lime-500" /> Elegible para subsidios</span>
+                : 'Sin elegibilidad de subsidios'
+              }
             </p>
           </div>
         </div>
@@ -288,7 +294,7 @@ export default function EducacionPage() {
 
       {programasFiltrados.length === 0 ? (
         <div className="card p-10 text-center text-gray-400">
-          <p className="text-4xl mb-3">🔍</p>
+          <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
           <p className="font-medium">No hay programas con los filtros seleccionados.</p>
           <button onClick={() => { setFiltroTipo('Todos'); setFiltroCosto('Todos') }}
             className="mt-3 text-sm text-blue-400 hover:underline">Limpiar filtros</button>
@@ -304,7 +310,7 @@ export default function EducacionPage() {
       {/* Sin datos del todo */}
       {!data && (
         <div className="card p-10 text-center text-gray-400">
-          <p className="text-4xl mb-3">📋</p>
+          <ClipboardList className="w-10 h-10 mx-auto mb-3 text-gray-300" />
           <p className="font-medium mb-4">Para ver recomendaciones personalizadas, completa primero tus perfiles.</p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link to="/modulos/financiero" className="btn-primary">Completar perfil financiero</Link>

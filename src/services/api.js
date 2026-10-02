@@ -116,3 +116,11 @@ export const getRecomendacionesEducacion = (id_usuario) =>
 
 export const eliminarRespuestasCuestionario = (id_usuario) =>
   fetchAPI(`/usuarios/${id_usuario}/respuestas-cuestionario`, { method: "DELETE" });
+
+// ==================== CHAT ====================
+
+export const sendChatMessage = (message, history = []) =>
+  fetchAPI("/chat/message", {
+    method: "POST",
+    body: JSON.stringify({ message, history }),
+  });

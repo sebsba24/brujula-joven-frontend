@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Briefcase, BookOpen, Building2 } from 'lucide-react'
 
 const recursos = [
   { title: 'Cómo crear una hoja de vida moderna', tipo: 'Guía', tiempo: '5 min', done: true },
@@ -30,7 +31,9 @@ export default function EmpleoPage() {
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl shrink-0">💼</div>
+        <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0">
+          <Briefcase className="w-7 h-7 text-blue-600" />
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Módulo de Empleo</h1>
           <p className="text-gray-400 mt-1">Recursos para conseguir y mantener tu primer empleo en Colombia.</p>
@@ -61,7 +64,10 @@ export default function EmpleoPage() {
             className={`pb-3 px-2 text-sm font-semibold capitalize transition-all border-b-2 -mb-px ${
               tab === t ? 'border-blue-400 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}>
-            {t === 'recursos' ? '📚 Recursos' : '🏢 Ofertas de empleo'}
+            {t === 'recursos'
+              ? <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />Recursos</span>
+              : <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />Ofertas de empleo</span>
+            }
           </button>
         ))}
       </div>
