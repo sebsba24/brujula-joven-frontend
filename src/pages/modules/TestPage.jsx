@@ -25,7 +25,7 @@ function LikertBubble({ question, selected, onChange }) {
         {question.text}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ font: '600 12px Archivo', color: 'var(--muted)', width: 82, flexShrink: 0, textAlign: 'right', lineHeight: 1.3 }}>
+        <span className="likert-edge-label" style={{ font: '600 12px Archivo', color: 'var(--muted)', width: 82, flexShrink: 0, textAlign: 'right', lineHeight: 1.3 }}>
           Muy en<br />desacuerdo
         </span>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
@@ -72,7 +72,7 @@ function LikertBubble({ question, selected, onChange }) {
             );
           })}
         </div>
-        <span style={{ font: '600 12px Archivo', color: 'var(--green)', width: 82, flexShrink: 0, textAlign: 'left', lineHeight: 1.3 }}>
+        <span className="likert-edge-label" style={{ font: '600 12px Archivo', color: 'var(--green)', width: 82, flexShrink: 0, textAlign: 'left', lineHeight: 1.3 }}>
           Muy de<br />acuerdo
         </span>
       </div>

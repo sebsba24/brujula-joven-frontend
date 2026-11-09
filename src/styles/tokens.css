@@ -99,4 +99,11 @@
       display: none !important;
     }
   }
+
+  /* Likert: en móvil ocultamos los rótulos laterales (los de cada círculo bastan) */
+  @media (max-width: 768px) {
+    .likert-edge-label {
+      display: none !important;
+    }
+  }
 }

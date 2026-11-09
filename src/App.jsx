@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { useState } from 'react'
+import { Menu } from 'lucide-react'
+import useIsMobile from './hooks/useIsMobile'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Sidebar from './components/layout/Sidebar'
 import ModulesIndex from './pages/ModulesIndex'
@@ -14,10 +17,33 @@ import './styles/tokens.css'
 import ChatWidget from './components/ui/ChatWidget'
 
 function AppLayout() {
+  const isMobile = useIsMobile()
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <Sidebar />
+      <Sidebar isMobile={isMobile} mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {isMobile && (
+          <header style={{
+            position: 'sticky', top: 0, zIndex: 40,
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 16px',
+            background: 'var(--surf)', borderBottom: '1px solid var(--line)',
+          }}>
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Abrir menú"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', display: 'flex', padding: 4 }}
+            >
+              <Menu size={24} />
+            </button>
+            <span style={{ font: '800 17px Archivo', letterSpacing: '-0.02em' }}>
+              <span style={{ color: 'var(--text)' }}>Next</span>
+              <span style={{ color: 'var(--cyan)' }}>Steps</span>
+            </span>
+          </header>
+        )}
         <Outlet />
       </main>
       <ChatWidget />

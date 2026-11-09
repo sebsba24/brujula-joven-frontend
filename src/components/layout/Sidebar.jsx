@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
-  Home, Compass, GraduationCap, Wallet, Briefcase, LogOut, PanelLeftClose, PanelLeftOpen,
+  Home, Compass, GraduationCap, Wallet, Briefcase, LogOut, PanelLeftClose, PanelLeftOpen, X,
 } from 'lucide-react'
 
 const NAV_LINKS = [
@@ -24,14 +24,17 @@ const LogoIcon = () => (
   </svg>
 )
 
-export default function Sidebar() {
+export default function Sidebar({ isMobile = false, mobileOpen = false, onClose = () => {} }) {
   const { pathname } = useLocation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
-  const [collapsed, setCollapsed] = useState(() => {
+  const [collapsedPref, setCollapsed] = useState(() => {
     try { return localStorage.getItem('sidebar_collapsed') === 'true' } catch { return false }
   })
+
+  // En móvil el sidebar es un drawer: siempre expandido, nunca colapsado.
+  const collapsed = isMobile ? false : collapsedPref
 
   const toggleCollapsed = () => {
     setCollapsed(prev => {
@@ -52,9 +55,26 @@ export default function Sidebar() {
     navigate('/login')
   }
 
-  return (
-    <aside
-      style={{
+  const asideStyle = isMobile
+    ? {
+        width: 236,
+        background: 'var(--surf)',
+        borderRight: '1px solid var(--line)',
+        padding: '26px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
+        overflowY: 'auto',
+        zIndex: 60,
+        transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.25s ease',
+        boxShadow: mobileOpen ? '4px 0 24px rgba(12,24,38,.18)' : 'none',
+      }
+    : {
         width: collapsed ? 84 : 236,
         flexShrink: 0,
         background: 'var(--surf)',
@@ -68,8 +88,22 @@ export default function Sidebar() {
         top: 0,
         height: '100vh',
         overflowY: 'auto',
-      }}
-    >
+      }
+
+  return (
+    <>
+      {isMobile && mobileOpen && (
+        <div
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(12,24,38,.45)',
+            zIndex: 55,
+          }}
+        />
+      )}
+    <aside style={asideStyle}>
       {/* Logo + toggle */}
       <div style={{
         display: 'flex',
@@ -102,13 +136,13 @@ export default function Sidebar() {
               </span>
             </Link>
             <button
-              onClick={toggleCollapsed}
-              title="Contraer menú"
+              onClick={isMobile ? onClose : toggleCollapsed}
+              title={isMobile ? 'Cerrar menú' : 'Contraer menú'}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 8 }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.color = 'var(--text)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--muted)' }}
             >
-              <PanelLeftClose size={18} strokeWidth={1.8} />
+              {isMobile ? <X size={20} strokeWidth={1.8} /> : <PanelLeftClose size={18} strokeWidth={1.8} />}
             </button>
           </>
         )}
@@ -123,6 +157,7 @@ export default function Sidebar() {
               key={path}
               to={path}
               title={collapsed ? label : undefined}
+              onClick={() => { if (isMobile) onClose() }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -220,5 +255,6 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   )
 }
