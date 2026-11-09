@@ -97,13 +97,15 @@ export const useTestEngine = () => {
     else if (currentLevel === 2) {
 
       try {
-        const top1 = getTop(scores, 1)[0];
+        const top2 = getTop(scores, 2);
 
-        const data = await getPreguntasPorRasgo(top1);
+        // Cargar preguntas para los 2 rasgos dominantes y combinarlos
+        const fetches = top2.map(r => getPreguntasPorRasgo(r));
+        const resultados = await Promise.all(fetches);
+        const todasLasPreguntas = resultados.flat();
 
-        //IMPORTANTE: mapear como nivel 3 tipo likert
-        const preguntasNivel3  = data
-          .filter(p => p.nivel === 3) // seguridad
+        const preguntasNivel3 = todasLasPreguntas
+          .filter(p => p.nivel === 3)
           .map(p => ({
             id: p.id_pregunta,
             text: p.descripcion,
@@ -111,7 +113,7 @@ export const useTestEngine = () => {
             tipo: "likert"
           }));
 
-        setVisibleQuestions(preguntasNivel3 );
+        setVisibleQuestions(preguntasNivel3);
         setCurrentLevel(3);
 
       } catch (error) {

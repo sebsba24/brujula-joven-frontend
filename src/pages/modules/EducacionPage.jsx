@@ -1,33 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { jwtDecode } from 'jwt-decode'
 import { getRecomendacionesEducacion } from '../../services/api'
-import { GraduationCap, Search, ClipboardList, CheckCircle2 } from 'lucide-react'
+import { Search, CheckCircle2, ClipboardList, X, MapPin, Clock, GraduationCap, ExternalLink, BookOpen, Banknote } from 'lucide-react'
 
 // ==================== HELPERS ====================
 
-const TIPO_COLOR = {
-  'Técnico':       'bg-blue-100 text-blue-700',
-  'Tecnológico':   'bg-purple-100 text-purple-700',
-  'Universitario': 'bg-indigo-100 text-indigo-700',
-}
+const RASGO_NOMBRE = { R: 'Realista', I: 'Investigador', A: 'Artístico', S: 'Social', E: 'Emprendedor', C: 'Convencional' }
 
 const COSTO_LABEL = {
-  gratuito: { label: 'Gratuito',  cls: 'bg-green-100 text-green-700' },
-  bajo:     { label: 'Costo bajo', cls: 'bg-lime-100 text-lime-700' },
-  medio:    { label: 'Costo medio', cls: 'bg-yellow-100 text-yellow-700' },
-  alto:     { label: 'Costo alto', cls: 'bg-red-100 text-red-700' },
-}
-
-const RASGO_NOMBRE = { R: 'Realista', I: 'Investigador', A: 'Artístico', S: 'Social', E: 'Emprendedor', C: 'Convencional' }
-const RASGO_COLOR  = { R: 'bg-orange-100 text-orange-700', I: 'bg-blue-100 text-blue-700', A: 'bg-pink-100 text-pink-700',
-                       S: 'bg-teal-100 text-teal-700', E: 'bg-emerald-100 text-emerald-700', C: 'bg-violet-100 text-violet-700' }
-
-const CAPACIDAD_CONFIG = {
-  alta:  { label: 'Alta',  icon: '💚', bar: 'bg-green-400',  pct: 90 },
-  media: { label: 'Media', icon: '💛', bar: 'bg-yellow-400', pct: 55 },
-  baja:  { label: 'Baja',  icon: '🔴', bar: 'bg-red-400',    pct: 25 },
+  gratuito: 'Gratuito',
+  bajo:     'Costo bajo',
+  medio:    'Costo medio',
+  alto:     'Costo alto',
 }
 
 const MODALIDAD_LABEL = {
@@ -36,104 +22,368 @@ const MODALIDAD_LABEL = {
   cualquiera: 'Presencial o virtual',
 }
 
+const CAPACIDAD_CONFIG = {
+  alta:  { label: 'Alta',  bar: 'var(--green)',  pct: 90 },
+  media: { label: 'Media', bar: '#F5A623',        pct: 55 },
+  baja:  { label: 'Baja',  bar: '#E74C3C',        pct: 25 },
+}
+
+// Gradient by score
+function cardGradient(score) {
+  const pct = Math.round((score || 0) * 100)
+  if (pct >= 88) return 'linear-gradient(135deg, var(--cyan), var(--cyandk))'
+  if (pct >= 78) return 'linear-gradient(135deg, var(--green), var(--greendk))'
+  if (pct >= 68) return 'linear-gradient(135deg, var(--violet), var(--violetdk))'
+  return 'linear-gradient(135deg, #2E8FB0, var(--cyandk))'
+}
+
+function matchBadgeStyle(score) {
+  const pct = Math.round((score || 0) * 100)
+  if (pct >= 78) return { background: 'var(--lime)', color: 'var(--navy)' }
+  return { background: 'rgba(255,255,255,.9)', color: 'var(--navy)' }
+}
+
 // ==================== SUBCOMPONENTES ====================
 
-function BannerIncompleto({ sinFinanciero, sinVocacional }) {
+function BannerAlert({ type, children }) {
+  const styles = {
+    warn: { bg: 'rgba(245,166,35,.08)', border: 'rgba(245,166,35,.25)', label: '#B7791F' },
+    info: { bg: 'rgba(21,166,204,.07)', border: 'rgba(21,166,204,.2)',  label: 'var(--cyandk)' },
+  }
+  const s = styles[type]
   return (
-    <div className="space-y-3 mb-8">
-      {sinFinanciero && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1">
-            <p className="font-semibold text-amber-800">Completa tu perfil financiero</p>
-            <p className="text-amber-700 text-sm mt-1">
-              Sin este dato, las recomendaciones usan valores predeterminados. Para resultados precisos, responde el formulario financiero.
-            </p>
-          </div>
-          <Link to="/modulos/financiero" className="btn-primary shrink-0">Completar ahora</Link>
-        </div>
-      )}
-      {sinVocacional && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1">
-            <p className="font-semibold text-blue-800">Completa el test vocacional</p>
-            <p className="text-blue-700 text-sm mt-1">
-              El test RIASEC nos permite saber qué tipo de programas se alinean mejor con tu perfil.
-            </p>
-          </div>
-          <Link to="/modulos/test" className="btn-secondary shrink-0">Hacer el test</Link>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ScoreBar({ score }) {
-  const pct = Math.round((score || 0) * 100)
-  const color = pct >= 70 ? 'bg-emerald-400' : pct >= 45 ? 'bg-yellow-400' : 'bg-gray-300'
-  return (
-    <div className="flex items-center gap-2 mt-1">
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-        <div className={`${color} h-1.5 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+    <div style={{
+      background: s.bg, border: `1px solid ${s.border}`, borderRadius: 14,
+      padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16,
+      flexWrap: 'wrap',
+    }}>
+      <div style={{ flex: 1 }}>
+        {children}
       </div>
-      <span className="text-xs font-semibold text-gray-500 shrink-0">{pct}%</span>
     </div>
   )
 }
 
-function ProgramaCard({ prog }) {
-  const costo = COSTO_LABEL[prog.costo] || COSTO_LABEL.medio
-  const tipo  = TIPO_COLOR[prog.tipo]   || 'bg-gray-100 text-gray-700'
-  const rasgo = RASGO_COLOR[prog.rasgo] || 'bg-gray-100 text-gray-700'
+function ProgramaCard({ prog, onVerDetalle }) {
+  const pct = Math.round((prog.score || 0) * 100)
+  const badge = matchBadgeStyle(prog.score)
 
   return (
-    <div className="card p-5 flex flex-col gap-3">
-      <div className="flex justify-between items-start gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-gray-900 text-sm leading-tight">{prog.nombre}</h3>
-          <p className="text-gray-500 text-xs mt-0.5">{prog.inst} · {prog.ciudad}</p>
-          {prog.score !== undefined && <ScoreBar score={prog.score} />}
-        </div>
-        {prog.con_beca && (
-          <span className="text-xs bg-lime-100 text-lime-800 px-2 py-0.5 rounded-full font-semibold shrink-0 ml-1">
-            Beca disponible
+    <div style={{
+      background: 'var(--surf)', border: '1px solid var(--line)',
+      borderRadius: 15, overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Gradient header */}
+      <div style={{
+        height: 80, background: cardGradient(prog.score),
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', padding: 12,
+      }}>
+        {pct > 0 && (
+          <span style={{
+            font: '800 12px Archivo', padding: '4px 9px', borderRadius: 7,
+            ...badge,
+          }}>
+            {pct}% match
           </span>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${tipo}`}>{prog.tipo}</span>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${costo.cls}`}>{costo.label}</span>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${rasgo}`}>{RASGO_NOMBRE[prog.rasgo]}</span>
-      </div>
-
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {prog.modalidad.map(m => (
-          <span key={m} className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-            {MODALIDAD_LABEL[m] || m}
-          </span>
-        ))}
+      {/* Body */}
+      <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ font: '800 15px Archivo', color: 'var(--text)', marginBottom: 4 }}>
+          {prog.nombre}
+        </div>
+        <div style={{ font: '500 12px Archivo', color: 'var(--muted)', marginBottom: 10 }}>
+          {prog.inst} · {prog.ciudad}
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{
+            font: '600 11px Archivo', padding: '4px 8px', borderRadius: 7,
+            background: 'rgba(21,166,204,.1)', color: 'var(--cyandk)',
+          }}>{prog.tipo}</span>
+          {prog.costo && (
+            <span style={{
+              font: '600 11px Archivo', padding: '4px 8px', borderRadius: 7,
+              background: 'rgba(47,190,87,.1)', color: 'var(--greendk)',
+            }}>{COSTO_LABEL[prog.costo] || prog.costo}</span>
+          )}
+          {prog.con_beca && (
+            <span style={{
+              font: '700 11px Archivo', padding: '4px 8px', borderRadius: 7,
+              background: 'rgba(134,224,90,.2)', color: 'var(--greendk)',
+            }}>Beca disponible</span>
+          )}
+        </div>
+        {prog.modalidad?.length > 0 && (
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
+            {prog.modalidad.map(m => (
+              <span key={m} style={{
+                font: '500 11px Archivo', color: 'var(--sub)',
+                background: 'var(--bg)', padding: '3px 7px', borderRadius: 6,
+              }}>
+                {MODALIDAD_LABEL[m] || m}
+              </span>
+            ))}
+          </div>
+        )}
+        {/* Ver detalle button */}
+        <button
+          onClick={() => onVerDetalle(prog)}
+          style={{
+            marginTop: 'auto', paddingTop: 14,
+            font: '700 13px Archivo', color: 'var(--cyandk)',
+            background: 'none', border: 'none', cursor: 'pointer',
+            textAlign: 'left', display: 'flex', alignItems: 'center', gap: 5,
+            padding: '14px 0 0',
+          }}
+        >
+          Ver más detalles →
+        </button>
       </div>
     </div>
   )
 }
 
-// ==================== PÁGINA PRINCIPAL ====================
+// ==================== MODAL DETALLE ====================
 
-const FILTROS_TIPO = ['Todos', 'Técnico', 'Tecnológico', 'Universitario']
+function ModalDetalle({ prog, onClose }) {
+  const pct = Math.round((prog.score || 0) * 100)
+
+  // Cerrar con Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px 16px',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg)', borderRadius: 20,
+          width: '100%', maxWidth: 540,
+          maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 24px 64px rgba(0,0,0,.3)',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        {/* Header con gradiente */}
+        <div style={{
+          height: 120, background: cardGradient(prog.score),
+          borderRadius: '20px 20px 0 0', position: 'relative',
+          display: 'flex', alignItems: 'flex-end', padding: '16px 20px',
+          flexShrink: 0,
+        }}>
+          {pct > 0 && (
+            <span style={{
+              font: '800 13px Archivo', padding: '5px 11px', borderRadius: 8,
+              ...matchBadgeStyle(prog.score),
+              position: 'absolute', top: 16, left: 20,
+            }}>
+              {pct}% match con tu perfil
+            </span>
+          )}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute', top: 14, right: 14,
+              background: 'rgba(0,0,0,.2)', border: 'none', borderRadius: '50%',
+              width: 32, height: 32, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <X size={16} color="#fff" />
+          </button>
+          <div>
+            <div style={{ font: '800 19px Archivo', color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,.3)' }}>
+              {prog.nombre}
+            </div>
+            <div style={{ font: '500 13px Archivo', color: 'rgba(255,255,255,.85)' }}>
+              {prog.inst}
+            </div>
+          </div>
+        </div>
+
+        {/* Cuerpo */}
+        <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Chips de info rápida */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              font: '600 12px Archivo', padding: '6px 11px', borderRadius: 8,
+              background: 'rgba(21,166,204,.1)', color: 'var(--cyandk)',
+            }}>
+              <GraduationCap size={13} />{prog.tipo}
+            </span>
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              font: '600 12px Archivo', padding: '6px 11px', borderRadius: 8,
+              background: 'rgba(47,190,87,.1)', color: 'var(--greendk)',
+            }}>
+              <Banknote size={13} />{COSTO_LABEL[prog.costo] || prog.costo}
+            </span>
+            {prog.ciudad && (
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                font: '600 12px Archivo', padding: '6px 11px', borderRadius: 8,
+                background: 'var(--surf)', color: 'var(--muted)',
+                border: '1px solid var(--line)',
+              }}>
+                <MapPin size={13} />{prog.ciudad}
+              </span>
+            )}
+            {prog.duracion && (
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                font: '600 12px Archivo', padding: '6px 11px', borderRadius: 8,
+                background: 'var(--surf)', color: 'var(--muted)',
+                border: '1px solid var(--line)',
+              }}>
+                <Clock size={13} />{prog.duracion}
+              </span>
+            )}
+          </div>
+
+          {/* Descripción */}
+          {prog.descripcion && (
+            <div>
+              <div style={{ font: '700 12px Archivo', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+                Sobre el programa
+              </div>
+              <p style={{ font: '400 14px Archivo', color: 'var(--text)', lineHeight: 1.6, margin: 0 }}>
+                {prog.descripcion}
+              </p>
+            </div>
+          )}
+
+          {/* Requisitos */}
+          {prog.requisitos && (
+            <div style={{
+              background: 'var(--surf)', border: '1px solid var(--line)',
+              borderRadius: 12, padding: '14px 16px',
+              display: 'flex', alignItems: 'flex-start', gap: 12,
+            }}>
+              <BookOpen size={16} color="var(--cyandk)" style={{ flexShrink: 0, marginTop: 2 }} />
+              <div>
+                <div style={{ font: '700 12px Archivo', color: 'var(--muted)', marginBottom: 4 }}>Requisitos de ingreso</div>
+                <div style={{ font: '500 13px Archivo', color: 'var(--text)' }}>{prog.requisitos}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Modalidad */}
+          {prog.modalidad?.length > 0 && (
+            <div>
+              <div style={{ font: '700 12px Archivo', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
+                Modalidad
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {prog.modalidad.map(m => (
+                  <span key={m} style={{
+                    font: '600 12px Archivo', padding: '6px 12px', borderRadius: 8,
+                    background: 'var(--surf)', color: 'var(--text)',
+                    border: '1px solid var(--line)',
+                  }}>
+                    {MODALIDAD_LABEL[m] || m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Beca */}
+          {prog.con_beca && (
+            <div style={{
+              background: 'rgba(134,224,90,.08)', border: '1px solid rgba(134,224,90,.3)',
+              borderRadius: 12, padding: '12px 16px',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <CheckCircle2 size={16} color="var(--greendk)" />
+              <span style={{ font: '600 13px Archivo', color: 'var(--greendk)' }}>
+                Este programa tiene becas o financiación disponible
+              </span>
+            </div>
+          )}
+
+          {/* CTA */}
+          {prog.url && (
+            <a
+              href={prog.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: 'var(--cyan)', color: '#fff',
+                font: '700 14px Archivo', padding: '13px 24px',
+                borderRadius: 12, textDecoration: 'none',
+                transition: 'opacity .15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              Visitar sitio oficial de {prog.inst}
+              <ExternalLink size={15} />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ==================== PÁGINA ====================
+
+const FILTROS_TIPO  = ['Todos', 'Técnico', 'Tecnológico', 'Universitario']
 const FILTROS_COSTO = ['Todos', 'gratuito', 'bajo', 'medio', 'alto']
+const TABS = ['Carreras', 'Becas', 'Cursos', 'Oficios técnicos']
+
+function Pill({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        font: active ? '700 12px Archivo' : '600 12px Archivo',
+        color: active ? '#fff' : 'var(--muted)',
+        background: active ? 'var(--cyan)' : 'var(--surf)',
+        border: active ? 'none' : '1px solid var(--line)',
+        padding: '8px 14px', borderRadius: 99,
+        cursor: 'pointer', transition: 'all 0.15s',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
 
 export default function EducacionPage() {
   const { token } = useAuth()
   const user = token ? jwtDecode(token) : null
 
-  const [data, setData]           = useState(null)
-  const [cargando, setCargando]   = useState(true)
+  const [data, setData]         = useState(null)
+  const [cargando, setCargando] = useState(true)
   const [filtroTipo, setFiltroTipo]   = useState('Todos')
   const [filtroCosto, setFiltroCosto] = useState('Todos')
+  const [tabActivo, setTabActivo]     = useState('Carreras')
   const [mostrarBecas, setMostrarBecas] = useState(false)
+  const [progSeleccionado, setProgSeleccionado] = useState(null)
+
+  const handleVerDetalle = useCallback((prog) => setProgSeleccionado(prog), [])
+  const handleCerrarModal = useCallback(() => setProgSeleccionado(null), [])
 
   useEffect(() => {
-    if (!token) return           // token aún no cargado desde localStorage
+    if (!token) return
     if (!user?.sub) { setCargando(false); return }
     setCargando(true)
     getRecomendacionesEducacion(user.sub)
@@ -147,177 +397,249 @@ export default function EducacionPage() {
     return true
   })
 
-  const cap = data?.capacidad_economica
-    ? CAPACIDAD_CONFIG[data.capacidad_economica]
-    : null
+  const cap = data?.capacidad_economica ? CAPACIDAD_CONFIG[data.capacidad_economica] : null
 
   if (cargando) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-400">
-        Cargando recomendaciones…
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+        <span style={{ font: '500 14px Archivo', color: 'var(--muted)' }}>Cargando recomendaciones…</span>
       </div>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link to="/modulos" className="hover:text-blue-400">Módulos</Link>
-        <span>/</span>
-        <span className="text-gray-900 font-medium">Educación</span>
-      </div>
+    <>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       {/* Header */}
-      <div className="flex items-start gap-4 mb-8">
-        <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center shrink-0">
-          <GraduationCap className="w-7 h-7 text-lime-600" />
+      <div style={{ padding: '30px 36px 0' }}>
+        <div style={{ font: '700 13px Archivo', color: 'var(--cyandk)', marginBottom: 6 }}>
+          Módulo Educación
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Módulo de Educación</h1>
-          <p className="text-gray-400 mt-1">
-            Programas académicos e instituciones recomendadas según tu perfil.
-          </p>
+        <h1 style={{ font: '800 27px Archivo', letterSpacing: '-.02em', margin: '0 0 18px', color: 'var(--text)' }}>
+          Explora tu camino de estudios
+        </h1>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--line)' }}>
+          {TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setTabActivo(tab)}
+              style={{
+                font: tabActivo === tab ? '700 14px Archivo' : '600 14px Archivo',
+                color: tabActivo === tab ? 'var(--cyandk)' : 'var(--muted)',
+                padding: '0 14px 12px',
+                borderBottom: tabActivo === tab ? '2px solid var(--cyan)' : '2px solid transparent',
+                background: 'none', border: 'none',
+                borderBottomWidth: 2,
+                borderBottomStyle: 'solid',
+                borderBottomColor: tabActivo === tab ? 'var(--cyan)' : 'transparent',
+                cursor: 'pointer', transition: 'all 0.15s',
+                paddingBottom: 12,
+              }}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Banners de perfil incompleto */}
-      {data && (data.sin_perfil_financiero || data.sin_perfil_vocacional) && (
-        <BannerIncompleto sinFinanciero={data.sin_perfil_financiero} sinVocacional={data.sin_perfil_vocacional} />
-      )}
+      {/* Filters bar */}
+      <div style={{ padding: '16px 36px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid var(--line)' }}>
+        {/* Search */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          background: 'var(--surf)', border: '1px solid var(--line)',
+          borderRadius: 10, padding: '9px 14px', flex: '1', maxWidth: 280,
+        }}>
+          <Search size={16} color="var(--sub)" />
+          <span style={{ font: '500 13px Archivo', color: 'var(--sub)' }}>Buscar carrera…</span>
+        </div>
 
-      {/* Resumen del perfil */}
-      {data && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {/* Capacidad económica */}
-          {cap && (
-            <div className="card p-5">
-              <p className="text-xs text-gray-400 mb-2">Capacidad económica</p>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{cap.icon}</span>
-                <span className="font-bold text-gray-800">{cap.label}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className={`${cap.bar} h-2 rounded-full`} style={{ width: `${cap.pct}%` }} />
-              </div>
-            </div>
-          )}
+        <span style={{ font: '500 12px Archivo', color: 'var(--muted)' }}>Tipo:</span>
+        {FILTROS_TIPO.map(f => (
+          <Pill key={f} active={filtroTipo === f} onClick={() => setFiltroTipo(f)}>
+            {f}
+          </Pill>
+        ))}
 
-          {/* Perfil vocacional */}
-          <div className="card p-5">
-            <p className="text-xs text-gray-400 mb-2">Perfil vocacional (top 3)</p>
-            {data.top_rasgos?.length ? (
-              <div className="flex flex-wrap gap-2">
-                {data.top_rasgos.map(r => (
-                  <span key={r} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${RASGO_COLOR[r] || 'bg-gray-100 text-gray-600'}`}>
-                    {RASGO_NOMBRE[r] || r}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">Sin datos</p>
+        <span style={{ font: '500 12px Archivo', color: 'var(--muted)', marginLeft: 4 }}>Costo:</span>
+        {FILTROS_COSTO.map(f => (
+          <Pill key={f} active={filtroCosto === f} onClick={() => setFiltroCosto(f)}>
+            {f === 'Todos' ? 'Todos' : COSTO_LABEL[f]}
+          </Pill>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, padding: '24px 36px 36px' }}>
+
+        {/* Banners incompletos */}
+        {data && (data.sin_perfil_financiero || data.sin_perfil_vocacional) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {data.sin_perfil_financiero && (
+              <BannerAlert type="warn">
+                <p style={{ font: '700 13px Archivo', color: '#B7791F', marginBottom: 4 }}>Completa tu perfil financiero</p>
+                <p style={{ font: '500 12px Archivo', color: '#92400E' }}>
+                  Sin este dato, las recomendaciones usan valores predeterminados.
+                </p>
+                <Link to="/modulos/financiero" style={{
+                  display: 'inline-block', marginTop: 10,
+                  font: '700 12px Archivo', color: '#fff',
+                  background: '#B7791F', padding: '8px 14px', borderRadius: 9,
+                  textDecoration: 'none',
+                }}>Completar ahora</Link>
+              </BannerAlert>
+            )}
+            {data.sin_perfil_vocacional && (
+              <BannerAlert type="info">
+                <p style={{ font: '700 13px Archivo', color: 'var(--cyandk)', marginBottom: 4 }}>Completa el test vocacional</p>
+                <p style={{ font: '500 12px Archivo', color: 'var(--muted)' }}>
+                  El test RIASEC nos permite saber qué programas se alinean con tu perfil.
+                </p>
+                <Link to="/modulos/test" style={{
+                  display: 'inline-block', marginTop: 10,
+                  font: '700 12px Archivo', color: '#fff',
+                  background: 'var(--cyan)', padding: '8px 14px', borderRadius: 9,
+                  textDecoration: 'none',
+                }}>Hacer el test</Link>
+              </BannerAlert>
             )}
           </div>
+        )}
 
-          {/* Modalidad */}
-          <div className="card p-5">
-            <p className="text-xs text-gray-400 mb-2">Modalidad recomendada</p>
-            <p className="font-bold text-gray-800 text-sm">
-              {MODALIDAD_LABEL[data.modalidad_recomendada] || 'Presencial'}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {data.elegible_subsidios
-                ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-lime-500" /> Elegible para subsidios</span>
-                : 'Sin elegibilidad de subsidios'
-              }
-            </p>
-          </div>
-        </div>
-      )}
+        {/* Resumen del perfil */}
+        {data && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+            {cap && (
+              <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '18px 20px' }}>
+                <div style={{ font: '500 12px Archivo', color: 'var(--muted)', marginBottom: 8 }}>Capacidad económica</div>
+                <div style={{ font: '800 17px Archivo', color: 'var(--text)', marginBottom: 10 }}>{cap.label}</div>
+                <div style={{ height: 6, background: 'var(--line)', borderRadius: 99 }}>
+                  <div style={{ width: `${cap.pct}%`, height: '100%', background: cap.bar, borderRadius: 99 }} />
+                </div>
+              </div>
+            )}
 
-      {/* Becas */}
-      {data?.becas?.length > 0 && (
-        <div className="bg-lime-50 border border-lime-200 rounded-2xl p-5 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold bg-lime-400 text-white px-2 py-0.5 rounded-full mr-2">BECAS</span>
-              <span className="font-bold text-gray-900">Apoyos disponibles para ti</span>
+            {data.top_rasgos?.length > 0 && (
+              <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '18px 20px' }}>
+                <div style={{ font: '500 12px Archivo', color: 'var(--muted)', marginBottom: 10 }}>Perfil vocacional (top 3)</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {data.top_rasgos.map(r => (
+                    <span key={r} style={{
+                      font: '600 12px Archivo', padding: '5px 10px', borderRadius: 8,
+                      background: 'rgba(21,166,204,.1)', color: 'var(--cyandk)',
+                    }}>
+                      {RASGO_NOMBRE[r] || r}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ background: 'var(--surf)', border: '1px solid var(--line)', borderRadius: 14, padding: '18px 20px' }}>
+              <div style={{ font: '500 12px Archivo', color: 'var(--muted)', marginBottom: 8 }}>Modalidad recomendada</div>
+              <div style={{ font: '800 15px Archivo', color: 'var(--text)', marginBottom: 5 }}>
+                {MODALIDAD_LABEL[data.modalidad_recomendada] || 'Presencial'}
+              </div>
+              {data.elegible_subsidios && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, font: '500 12px Archivo', color: 'var(--greendk)' }}>
+                  <CheckCircle2 size={13} />
+                  Elegible para subsidios
+                </div>
+              )}
             </div>
-            <button onClick={() => setMostrarBecas(v => !v)}
-              className="text-sm text-lime-700 font-medium hover:underline">
+          </div>
+        )}
+
+        {/* Becas banner */}
+        {data?.becas?.length > 0 && (
+          <div style={{
+            background: 'rgba(134,224,90,.08)', border: '1px solid rgba(134,224,90,.3)',
+            borderRadius: 14, padding: '14px 20px', marginBottom: 24,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ font: '800 11px Archivo', color: '#fff', background: 'var(--lime)', padding: '3px 8px', borderRadius: 6 }}>
+                BECAS
+              </span>
+              <span style={{ font: '700 14px Archivo', color: 'var(--text)' }}>
+                Apoyos disponibles para ti
+              </span>
+            </div>
+            <button
+              onClick={() => setMostrarBecas(v => !v)}
+              style={{ font: '700 13px Archivo', color: 'var(--greendk)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
               {mostrarBecas ? 'Ocultar' : `Ver ${data.becas.length}`}
             </button>
           </div>
-          {mostrarBecas && (
-            <ul className="mt-4 space-y-2">
-              {data.becas.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-lime-500 mt-0.5 shrink-0">•</span>{b}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+        )}
+        {mostrarBecas && data?.becas?.length > 0 && (
+          <div style={{ marginBottom: 24, padding: '0 4px' }}>
+            {data.becas.map((b, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--line)', font: '500 13px Archivo', color: 'var(--text)' }}>
+                <span style={{ color: 'var(--lime)', marginTop: 2 }}>•</span>{b}
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
-        <div>
-          <span className="text-xs text-gray-400 mr-2">Tipo:</span>
-          {FILTROS_TIPO.map(f => (
-            <button key={f}
-              onClick={() => setFiltroTipo(f)}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium mr-1.5 transition-colors
-                ${filtroTipo === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            >{f}</button>
-          ))}
-        </div>
-        <div>
-          <span className="text-xs text-gray-400 mr-2">Costo:</span>
-          {FILTROS_COSTO.map(f => (
-            <button key={f}
-              onClick={() => setFiltroCosto(f)}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium mr-1.5 transition-colors
-                ${filtroCosto === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            >{f === 'Todos' ? 'Todos' : COSTO_LABEL[f]?.label || f}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Programas */}
-      <h2 className="font-bold text-gray-900 text-lg mb-4">
-        Programas recomendados
-        <span className="ml-2 text-sm font-normal text-gray-400">
-          ({programasFiltrados.length} resultado{programasFiltrados.length !== 1 ? 's' : ''})
-        </span>
-      </h2>
-
-      {programasFiltrados.length === 0 ? (
-        <div className="card p-10 text-center text-gray-400">
-          <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-          <p className="font-medium">No hay programas con los filtros seleccionados.</p>
-          <button onClick={() => { setFiltroTipo('Todos'); setFiltroCosto('Todos') }}
-            className="mt-3 text-sm text-blue-400 hover:underline">Limpiar filtros</button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {programasFiltrados.map((p, i) => (
-            <ProgramaCard key={i} prog={p} />
-          ))}
-        </div>
-      )}
-
-      {/* Sin datos del todo */}
-      {!data && (
-        <div className="card p-10 text-center text-gray-400">
-          <ClipboardList className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-          <p className="font-medium mb-4">Para ver recomendaciones personalizadas, completa primero tus perfiles.</p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/modulos/financiero" className="btn-primary">Completar perfil financiero</Link>
-            <Link to="/modulos/test" className="btn-secondary">Hacer test vocacional</Link>
+        {/* Programas */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ font: '800 17px Archivo', color: 'var(--text)' }}>
+            Programas recomendados
+            <span style={{ font: '500 13px Archivo', color: 'var(--muted)', marginLeft: 8 }}>
+              ({programasFiltrados.length} resultado{programasFiltrados.length !== 1 ? 's' : ''})
+            </span>
           </div>
         </div>
-      )}
+
+        {!data ? (
+          <div style={{
+            background: 'var(--surf)', border: '1px solid var(--line)',
+            borderRadius: 16, padding: '60px 24px', textAlign: 'center',
+          }}>
+            <ClipboardList size={40} color="var(--line)" style={{ margin: '0 auto 16px' }} />
+            <p style={{ font: '600 15px Archivo', color: 'var(--muted)', marginBottom: 20 }}>
+              Para ver recomendaciones personalizadas, completa tus perfiles.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/modulos/financiero" className="btn-primary">Completar perfil financiero</Link>
+              <Link to="/modulos/test" className="btn-secondary">Hacer test vocacional</Link>
+            </div>
+          </div>
+        ) : programasFiltrados.length === 0 ? (
+          <div style={{
+            background: 'var(--surf)', border: '1px solid var(--line)',
+            borderRadius: 16, padding: '48px 24px', textAlign: 'center',
+          }}>
+            <Search size={36} color="var(--line)" style={{ margin: '0 auto 12px' }} />
+            <p style={{ font: '600 14px Archivo', color: 'var(--muted)', marginBottom: 12 }}>
+              No hay programas con los filtros seleccionados.
+            </p>
+            <button
+              onClick={() => { setFiltroTipo('Todos'); setFiltroCosto('Todos') }}
+              style={{ font: '700 13px Archivo', color: 'var(--cyandk)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+            {programasFiltrados.map((p, i) => (
+              <ProgramaCard key={i} prog={p} onVerDetalle={handleVerDetalle} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
+
+    {/* Modal detalle */}
+    {progSeleccionado && (
+      <ModalDetalle prog={progSeleccionado} onClose={handleCerrarModal} />
+    )}
+    </>
   )
 }

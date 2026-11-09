@@ -4,7 +4,277 @@ import { useAuth } from '../../context/AuthContext'
 import { jwtDecode } from 'jwt-decode'
 import { guardarPerfilFinanciero, getPerfilFinanciero, eliminarPerfilFinanciero } from '../../services/api'
 import ConfirmModal from '../../components/ui/ConfirmModal'
-import { Wallet, CheckCircle2, XCircle } from 'lucide-react'
+import { Wallet, CheckCircle2, XCircle, BookOpen, PiggyBank, CreditCard, GraduationCap, TrendingUp, AlertCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+
+// ==================== EDUCACIÓN FINANCIERA ====================
+
+const TEMAS = [
+  {
+    id: 'presupuesto',
+    icon: TrendingUp,
+    color: '#2563eb',
+    bgColor: 'rgba(37,99,235,.08)',
+    titulo: 'Cómo hacer tu presupuesto personal',
+    resumen: 'La regla 50/30/20 adaptada a jóvenes colombianos.',
+    contenido: [
+      {
+        subtitulo: 'La regla 50/30/20',
+        texto: 'Divide tus ingresos en tres grandes grupos: el 50% para necesidades básicas (arriendo, alimentación, transporte), el 30% para gustos personales (salidas, ropa, entretenimiento) y el 20% para ahorro o pago de deudas. Si ganas 1 SMMLV ($1.423.500 en 2025), tu meta de ahorro mensual sería ~$284.700.',
+      },
+      {
+        subtitulo: 'Paso 1 — Anota todos tus ingresos',
+        texto: 'Incluye todo: sueldo, mesada, ventas ocasionales, transferencias familiares. Sé honesto; si el ingreso varía, usa el promedio de los últimos 3 meses.',
+      },
+      {
+        subtitulo: 'Paso 2 — Lista tus gastos fijos',
+        texto: 'Servicios públicos, arriendo o cuota de vivienda, transporte al trabajo o estudio, alimentación básica. Estos no puedes eliminar, solo reducir.',
+      },
+      {
+        subtitulo: 'Paso 3 — Controla los gastos variables',
+        texto: 'Domicilios, ropa, planes de celular, suscripciones de streaming. Revisa cuáles puedes recortar sin afectar tu bienestar. Un café diario en tienda puede costar ~$150.000 al mes.',
+      },
+      {
+        subtitulo: 'Herramienta gratuita',
+        texto: 'La Superfinanciera tiene una hoja de presupuesto descargable en educacionfinanciera.gov.co — úsala como plantilla.',
+        url: 'https://educacionfinanciera.gov.co/',
+        urlLabel: 'Ir a educacionfinanciera.gov.co',
+      },
+    ],
+  },
+  {
+    id: 'ahorro',
+    icon: PiggyBank,
+    color: '#16a34a',
+    bgColor: 'rgba(22,163,74,.08)',
+    titulo: 'Cómo empezar a ahorrar desde joven',
+    resumen: 'Fondos de emergencia, metas de corto plazo y el poder del interés compuesto.',
+    contenido: [
+      {
+        subtitulo: 'Fondo de emergencia primero',
+        texto: 'Antes de pensar en invertir, acumula entre 3 y 6 meses de tus gastos básicos en una cuenta de ahorros separada. Ese colchón te protege si pierdes el empleo o tienes un gasto inesperado.',
+      },
+      {
+        subtitulo: 'Cuenta de ahorros vs. CDT',
+        texto: 'Una cuenta de ahorros da liquidez inmediata pero baja tasa (~0.5% E.A.). Un CDT (Certificado de Depósito a Término) te rinde más (~10-12% E.A. en 2025) pero el dinero queda "bloqueado" por el plazo acordado. Si puedes esperar 90 días, un CDT es mejor opción.',
+      },
+      {
+        subtitulo: 'El poder del interés compuesto',
+        texto: 'Si ahorras $100.000 al mes desde los 18 años con un rendimiento del 8% anual, a los 30 años tendrías aproximadamente $2.3 millones. Si empiezas a los 25, tendrías solo $900.000. Empezar temprano importa más que el monto.',
+      },
+      {
+        subtitulo: 'Truco: págate a ti primero',
+        texto: 'Apenas recibas tu ingreso, transfiere de inmediato el 20% a tu cuenta de ahorro. No esperes a ver "lo que sobra" — casi nunca sobra nada.',
+      },
+      {
+        subtitulo: 'Programas de ahorro en Colombia',
+        texto: 'Nubank, Nequi y Daviplata ofrecen "alcancías virtuales" con tasas competitivas y sin cuota de manejo. Son ideales como primer paso para jóvenes.',
+      },
+    ],
+  },
+  {
+    id: 'credito',
+    icon: CreditCard,
+    color: '#7c3aed',
+    bgColor: 'rgba(124,58,237,.08)',
+    titulo: 'Crédito: cuándo usarlo y cuándo evitarlo',
+    resumen: 'Tarjetas, créditos de consumo y cómo no caer en deudas.',
+    contenido: [
+      {
+        subtitulo: '¿Qué es la tasa de usura?',
+        texto: 'En Colombia, la Superfinanciera fija cada mes la tasa máxima legal de interés (usura). Para el 2025 ronda el 40% E.A. Ningún banco ni financiera puede cobrarte más. Si alguien lo hace, es ilegal.',
+      },
+      {
+        subtitulo: 'Tarjeta de crédito: herramienta, no ingreso',
+        texto: 'Una tarjeta de crédito NO es un aumento de sueldo. Solo úsala si puedes pagar el 100% del saldo cada mes para evitar intereses. Pagar solo el "mínimo" es la trampa más común: la deuda crece por el interés compuesto.',
+      },
+      {
+        subtitulo: 'Crédito de libre inversión',
+        texto: 'Son préstamos con plazos de 12 a 60 meses. Antes de aceptar uno, calcula el costo total: capital + intereses + seguros. Una deuda de $5 millones al 30% E.A. a 24 meses te cuesta en realidad ~$7.1 millones.',
+      },
+      {
+        subtitulo: 'Historial crediticio (DataCrédito)',
+        texto: 'Desde tu primer crédito o servicio postpago, quedas registrado en centrales de riesgo. Pagar a tiempo construye un buen historial, que luego te abre puertas para créditos educativos, vivienda y vehículo con mejores tasas.',
+      },
+      {
+        subtitulo: 'Señales de alerta de "gota a gota"',
+        texto: 'Los préstamos informales o "gota a gota" cobran entre 10% y 20% SEMANAL — eso equivale a más del 1.000% anual. Nunca son una solución; siempre empeoran la situación.',
+      },
+    ],
+  },
+  {
+    id: 'icetex',
+    icon: GraduationCap,
+    color: '#0891b2',
+    bgColor: 'rgba(8,145,178,.08)',
+    titulo: 'ICETEX y créditos educativos',
+    resumen: 'Cómo funciona el crédito ICETEX, requisitos y cuánto pagarás.',
+    contenido: [
+      {
+        subtitulo: '¿Qué es el ICETEX?',
+        texto: 'El Instituto Colombiano de Crédito Educativo y Estudios Técnicos en el Exterior ofrece créditos con tasas subsidiadas para estudiar en instituciones de educación superior acreditadas en Colombia. No es una beca; hay que devolverlo, pero en condiciones mucho más favorables que un banco.',
+      },
+      {
+        subtitulo: 'Modalidades principales',
+        texto: '• Crédito largo plazo: pagas mientras estudias solo los intereses (desde $87.000/mes) y el capital al graduarte. • Crédito corto plazo: cuotas fijas durante el estudio. • Tú Eliges: más flexible, pago tras grado.',
+      },
+      {
+        subtitulo: '¿Cuánto te pueden prestar?',
+        texto: 'Hasta el 100% del valor de la matrícula según tu situación socioeconómica. Para estratos 1 y 2 hay líneas con tasa del 0% real (solo inflación). Consulta el simulador en icetex.gov.co.',
+        url: 'https://www.icetex.gov.co/portal/Inicio/PortalEstudiante/Simulador',
+        urlLabel: 'Simulador ICETEX',
+      },
+      {
+        subtitulo: 'Requisito clave: rendimiento académico',
+        texto: 'Para mantener el crédito debes aprobar al menos el 80% de las materias inscritas cada semestre. Si repruebas más del 20%, el crédito se suspende temporalmente.',
+      },
+      {
+        subtitulo: 'Beca Generación E',
+        texto: 'Si eres de estrato 1, 2 o 3, puedes aplicar a Generación E: el gobierno paga el 100% de tu matrícula en universidades públicas. No es un crédito — no lo devuelves. Aplica a través del ICETEX cada semestre.',
+        url: 'https://www.icetex.gov.co/portal/Inicio/PortalEstudiante/Becas',
+        urlLabel: 'Ver becas ICETEX',
+      },
+    ],
+  },
+  {
+    id: 'primer-sueldo',
+    icon: Wallet,
+    color: '#d97706',
+    bgColor: 'rgba(217,119,6,.08)',
+    titulo: 'Qué pasa con tu primer sueldo',
+    resumen: 'Descuentos de nómina, prestaciones y cómo leer tu desprendible de pago.',
+    contenido: [
+      {
+        subtitulo: 'Descuentos obligatorios de nómina',
+        texto: 'De tu salario bruto se descuentan: Salud (4%), Pensión (4%), Fondo de Solidaridad Pensional (si ganas más de 4 SMMLV). En total, el trabajador aporta el 8% de su salario. El empleador aporta aproximadamente el 21% adicional sobre tu salario.',
+      },
+      {
+        subtitulo: 'Prestaciones sociales',
+        texto: 'Si tienes contrato formal, la empresa debe pagarte: Prima de servicios (un salario en junio y otro en diciembre), Cesantías (1 mes de salario por año trabajado), Vacaciones (15 días hábiles por año) e Intereses sobre cesantías (12% anual sobre las cesantías).',
+      },
+      {
+        subtitulo: '¿Contrato a término fijo o indefinido?',
+        texto: 'El contrato a término fijo puede renovarse indefinidamente, pero te da seguridad por el plazo pactado. El indefinido es más estable a largo plazo; el empleador debe pagarte indemnización si te despide sin justa causa. Ambos dan las mismas prestaciones.',
+      },
+      {
+        subtitulo: 'Salario emocional vs. salario real',
+        texto: 'Beneficios como horario flexible, trabajo remoto, auxilio de estudio o alimentación pueden valer más que un aumento nominal. Al evaluar una oferta, suma el valor de todos los beneficios al salario base.',
+      },
+      {
+        subtitulo: 'Declaración de renta',
+        texto: 'Si ganas más de 46.8 millones al año (~3.9M/mes) o tienes ingresos de múltiples fuentes, probablemente debas presentar declaración de renta ante la DIAN en julio. Guarda tus certificados de ingresos y retenciones.',
+      },
+    ],
+  },
+]
+
+function TarjetaTema({ tema }) {
+  const [abierto, setAbierto] = useState(false)
+  const Icon = tema.icon
+
+  return (
+    <div style={{
+      border: '1px solid var(--border, #e5e7eb)',
+      borderRadius: 14,
+      overflow: 'hidden',
+      background: 'var(--bg, #fff)',
+    }}>
+      {/* Header clickable */}
+      <button
+        onClick={() => setAbierto(v => !v)}
+        style={{
+          width: '100%', textAlign: 'left',
+          padding: '18px 20px',
+          display: 'flex', alignItems: 'center', gap: 14,
+          background: 'none', border: 'none', cursor: 'pointer',
+        }}
+      >
+        <div style={{
+          width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+          background: tema.bgColor,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={20} color={tema.color} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--fg, #111827)', marginBottom: 2 }}>
+            {tema.titulo}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--fg-muted, #6b7280)' }}>
+            {tema.resumen}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0, color: 'var(--fg-muted, #6b7280)' }}>
+          {abierto ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </div>
+      </button>
+
+      {/* Contenido expandible */}
+      {abierto && (
+        <div style={{
+          borderTop: '1px solid var(--border, #e5e7eb)',
+          padding: '20px 20px 24px',
+          display: 'flex', flexDirection: 'column', gap: 20,
+        }}>
+          {tema.contenido.map((bloque, i) => (
+            <div key={i}>
+              <div style={{
+                fontWeight: 700, fontSize: 13, color: tema.color,
+                marginBottom: 6,
+              }}>
+                {bloque.subtitulo}
+              </div>
+              <p style={{
+                fontSize: 13, lineHeight: 1.65,
+                color: 'var(--fg, #111827)', margin: 0,
+              }}>
+                {bloque.texto}
+              </p>
+              {bloque.url && (
+                <a
+                  href={bloque.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    marginTop: 8, fontSize: 12, fontWeight: 600,
+                    color: tema.color, textDecoration: 'none',
+                  }}
+                >
+                  {bloque.urlLabel} <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EducacionFinanciera() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Banner intro */}
+      <div style={{
+        background: 'rgba(37,99,235,.06)',
+        border: '1px solid rgba(37,99,235,.15)',
+        borderRadius: 14, padding: '16px 20px',
+        display: 'flex', alignItems: 'flex-start', gap: 12,
+      }}>
+        <AlertCircle size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
+        <p style={{ fontSize: 13, color: 'var(--fg, #111827)', margin: 0, lineHeight: 1.6 }}>
+          El 68% de los jóvenes colombianos no recibe educación financiera formal.
+          Estos 5 temas pueden marcar la diferencia en tu vida económica.
+          Haz clic en cada uno para expandirlo.
+        </p>
+      </div>
+
+      {TEMAS.map(tema => (
+        <TarjetaTema key={tema.id} tema={tema} />
+      ))}
+    </div>
+  )
+}
 
 // ==================== OPCIONES ====================
 
@@ -29,7 +299,7 @@ const DISPONIBILIDAD = [
 ]
 
 const PAGO_MATRICULA = [
-  { value: 'no',          label: 'No podría pagar',     color: 'red' },
+  { value: 'no',          label: 'No podría pagar',     color: '#c20a00' },
   { value: 'parcialmente',label: 'Con beca o ayuda',    color: 'yellow' },
   { value: 'si',          label: 'Sí podría pagar',     color: 'green' },
 ]
@@ -279,17 +549,19 @@ export default function FinancieroPage() {
     }
   }
 
+  const [tabActivo, setTabActivo] = useState('perfil')
+
   // ── Cargando ──────────────────────────────────────────────
   if (cargando) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-400">
+      <div style={{ padding: '30px 36px', textAlign: 'center', color: 'var(--muted)' }}>
         Cargando perfil financiero…
       </div>
     )
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div style={{ padding: '30px 36px', maxWidth: 760, margin: '0 auto' }}>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
         <Link to="/modulos" className="hover:text-blue-400">Módulos</Link>
@@ -298,7 +570,7 @@ export default function FinancieroPage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-start gap-4 mb-8">
+      <div className="flex items-start gap-4 mb-6">
         <div className="w-14 h-14 bg-lime-100 rounded-2xl flex items-center justify-center shrink-0">
           <Wallet className="w-7 h-7 text-lime-600" />
         </div>
@@ -309,6 +581,44 @@ export default function FinancieroPage() {
           </p>
         </div>
       </div>
+
+      {/* Tabs */}
+      <div style={{
+        display: 'flex', gap: 4,
+        borderBottom: '2px solid #e5e7eb',
+        marginBottom: 28,
+      }}>
+        {[
+          { id: 'perfil', label: 'Mi Perfil', icon: '👤' },
+          { id: 'educacion', label: 'Educación Financiera', icon: '📚' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setTabActivo(tab.id)}
+            style={{
+              padding: '10px 18px',
+              fontWeight: 600,
+              fontSize: 14,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              borderBottom: tabActivo === tab.id ? '2px solid #65a30d' : '2px solid transparent',
+              color: tabActivo === tab.id ? '#65a30d' : '#6b7280',
+              marginBottom: -2,
+              display: 'flex', alignItems: 'center', gap: 6,
+              transition: 'color .15s',
+            }}
+          >
+            <span>{tab.icon}</span> {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab: Educación Financiera */}
+      {tabActivo === 'educacion' && <EducacionFinanciera />}
+
+      {/* Tab: Mi Perfil */}
+      {tabActivo === 'perfil' && <>
 
       {/* Modal de confirmación */}
       <ConfirmModal
@@ -530,6 +840,8 @@ export default function FinancieroPage() {
           </div>
         </>
       )}
+
+      </>}
     </div>
   )
 }

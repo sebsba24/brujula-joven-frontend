@@ -1,48 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --navy: #0C1826;
+    --navy2: #13273B;
+    --navy3: #1C3850;
+    --cyan: #15A6CC;
+    --cyanbr: #24C5E8;
+    --cyandk: #0C7A96;
+    --green: #2FBE57;
+    --lime: #86E05A;
+    --greendk: #1C9742;
+    --violet: #6B5BE6;
+    --violetdk: #4F3FCB;
+    --bg: #F4F7F9;
+    --surf: #FFFFFF;
+    --line: #E4EBF1;
+    --muted: #637789;
+    --sub: #8597A6;
+    --text: #0E1C2B;
+  }
+
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #F4F7F9;
-    color: #1A2E37;
+    font-family: 'Archivo', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+  h1, h2, h3, h4 { font-family: 'Archivo', system-ui, sans-serif; }
 }
 
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           bg-lime-400 text-navy-900 font-semibold px-5 py-2.5 rounded-xl
-           hover:bg-lime-600 hover:text-white
+           font-bold px-5 py-2.5 rounded-xl
            transition-all duration-200 text-sm cursor-pointer;
+    background: var(--cyan);
+    color: #fff;
   }
+  .btn-primary:hover {
+    background: var(--cyandk);
+  }
+
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           border border-blue-400 text-blue-600 font-semibold px-5 py-2.5 rounded-xl
-           hover:bg-blue-400 hover:text-white
+           font-semibold px-5 py-2.5 rounded-xl
            transition-all duration-200 text-sm cursor-pointer;
+    border: 1px solid var(--line);
+    color: var(--text);
+    background: var(--surf);
   }
+  .btn-secondary:hover {
+    border-color: var(--cyan);
+    color: var(--cyandk);
+  }
+
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2
            bg-red-500 text-white font-semibold px-5 py-2.5 rounded-xl
            hover:bg-red-600
            transition-all duration-200 text-sm cursor-pointer;
   }
+
   .card {
-    @apply bg-white rounded-2xl border border-gray-200 shadow-sm
-           hover:shadow-md transition-all duration-200;
+    @apply rounded-2xl transition-all duration-200;
+    background: var(--surf);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(12,24,38,.06);
   }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(12,24,38,.1);
+  }
+
   .input {
-    @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm
-           focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
-           bg-white placeholder-gray-400 transition-all;
+    @apply w-full rounded-xl px-4 py-3 text-sm
+           transition-all outline-none;
+    font-family: 'Archivo', sans-serif;
+    border: 1px solid var(--line);
+    background: var(--surf);
+    color: var(--text);
   }
+  .input::placeholder { color: var(--sub); }
+  .input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(21,166,204,.15);
+  }
+
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  /* Auth split-panel: hide left panel on narrow screens */
+  @media (max-width: 700px) {
+    .auth-left-panel {
+      display: none !important;
+    }
   }
 }

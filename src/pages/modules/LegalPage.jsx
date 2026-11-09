@@ -11,7 +11,7 @@ const temas = [
 
 export default function LegalPage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div style={{ padding: '30px 36px' }}>
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
         <Link to="/modulos" className="hover:text-blue-400">Módulos</Link>
         <span>/</span>

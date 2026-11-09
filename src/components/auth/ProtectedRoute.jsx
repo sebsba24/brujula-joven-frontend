@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }) {
 
   // No autenticado → redirigir
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Autenticado → mostrar contenido
