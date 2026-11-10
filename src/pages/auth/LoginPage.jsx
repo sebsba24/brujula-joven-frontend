@@ -94,8 +94,9 @@ export default function LoginPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, position: 'relative' }}>
           <LogoIcon />
           <span style={{ font: '800 20px Archivo' }}>
-            <span style={{ color: '#fff' }}>Next</span>
-            <span style={{ color: 'var(--cyanbr)' }}>Steps</span>
+            <span style={{ color: '#fff' }}>Brújula</span>
+            {' '}
+            <span style={{ color: 'var(--cyanbr)' }}>Joven</span>
           </span>
         </div>
         <div style={{ marginTop: 46, position: 'relative' }}>
@@ -242,7 +243,7 @@ export default function LoginPage() {
                 Ingresa tu código
               </h1>
               <p style={{ font: '500 14px Archivo', color: 'var(--muted)', margin: '0 0 26px' }}>
-                Abre Google Authenticator (o Authy) y escribe el código de 6 dígitos de NextSteps.
+                Abre Google Authenticator (o Authy) y escribe el código de 6 dígitos de Brújula Joven.
               </p>
 
               {/* Ícono visual */}

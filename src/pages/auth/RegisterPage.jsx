@@ -64,8 +64,9 @@ export default function RegisterPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, position: 'relative' }}>
           <LogoIcon />
           <span style={{ font: '800 20px Archivo' }}>
-            <span style={{ color: '#fff' }}>Next</span>
-            <span style={{ color: 'var(--cyanbr)' }}>Steps</span>
+            <span style={{ color: '#fff' }}>Brújula</span>
+            {' '}
+            <span style={{ color: 'var(--cyanbr)' }}>Joven</span>
           </span>
         </div>
         <div style={{ marginTop: 46, position: 'relative' }}>

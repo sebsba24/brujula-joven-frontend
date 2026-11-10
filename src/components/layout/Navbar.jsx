@@ -28,10 +28,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/modulos" className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 bg-lime-400 rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-navy-900 font-extrabold text-sm">NS</span>
+              <span className="text-navy-900 font-extrabold text-sm">BJ</span>
             </div>
             <span className="text-white font-bold text-lg tracking-tight hidden sm:block">
-              Next<span className="text-blue-400">Steps</span>
+              Brújula <span className="text-blue-400">Joven</span>
             </span>
           </Link>
 

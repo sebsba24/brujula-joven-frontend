@@ -5,7 +5,7 @@ import { Compass, MessageCircle, X, Send } from 'lucide-react'
 
 const WELCOME = {
   role: 'assistant',
-  content: '¡Hola! Soy Brújula, tu guía de orientación educativa en NextSteps. Puedo ayudarte con programas universitarios, técnicos, becas y financiamiento. ¿Por dónde empezamos?',
+  content: '¡Hola! Soy Brújula, tu guía de orientación educativa en Brújula Joven. Puedo ayudarte con programas universitarios, técnicos, becas y financiamiento. ¿Por dónde empezamos?',
 }
 
 function LoadingDots() {
@@ -89,7 +89,7 @@ export default function ChatWidget() {
                 <Compass className="w-4 h-4 text-lime-400" />
                 <p className="text-white font-bold text-sm leading-tight">Brújula IA</p>
               </div>
-              <p className="text-gray-400 text-xs">Orientación educativa · NextSteps</p>
+              <p className="text-gray-400 text-xs">Orientación educativa · Brújula Joven</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}

@@ -130,9 +130,10 @@ export default function Sidebar({ isMobile = false, mobileOpen = false, onClose 
           <>
             <Link to="/modulos" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none' }}>
               <LogoIcon />
-              <span style={{ font: '800 19px Archivo', letterSpacing: '-0.02em' }}>
-                <span style={{ color: 'var(--text)' }}>Next</span>
-                <span style={{ color: 'var(--cyan)' }}>Steps</span>
+              <span style={{ font: '800 16px Archivo', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+                <span style={{ color: 'var(--text)' }}>Brújula</span>
+                {' '}
+                <span style={{ color: 'var(--cyan)' }}>Joven</span>
               </span>
             </Link>
             <button

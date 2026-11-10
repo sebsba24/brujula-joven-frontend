@@ -39,8 +39,9 @@ function AppLayout() {
               <Menu size={24} />
             </button>
             <span style={{ font: '800 17px Archivo', letterSpacing: '-0.02em' }}>
-              <span style={{ color: 'var(--text)' }}>Next</span>
-              <span style={{ color: 'var(--cyan)' }}>Steps</span>
+              <span style={{ color: 'var(--text)' }}>Brújula</span>
+              {' '}
+              <span style={{ color: 'var(--cyan)' }}>Joven</span>
             </span>
           </header>
         )}
