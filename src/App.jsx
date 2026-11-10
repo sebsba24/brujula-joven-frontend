@@ -13,6 +13,7 @@ import Perfil from './pages/modules/Perfil'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPassword from './pages/auth/ForgotPassword'
+import OnboardingTwoFactor from './pages/auth/OnboardingTwoFactor'
 import './styles/tokens.css'
 import ChatWidget from './components/ui/ChatWidget'
 
@@ -72,6 +73,9 @@ export default function App() {
           <Route path="/register"        element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
+
+        {/* Onboarding 2FA — autenticado pero sin sidebar */}
+        <Route path="/registro-2fa" element={<ProtectedRoute><OnboardingTwoFactor /></ProtectedRoute>} />
 
         {/* App pages — with sidebar */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { registerUser } from '../../services/api'
+import { registerUser, loginUser } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 const LogoIcon = () => (
   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
@@ -27,9 +28,20 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value })
+
+  const parseRegisterError = (err) => {
+    try {
+      const detail = (JSON.parse(err.message).detail || '').toString()
+      if (/correo/i.test(detail) && /registrad/i.test(detail))
+        return 'Este correo ya está registrado. Inicia sesión o usa otro correo.'
+      if (detail && detail.length < 120) return detail
+    } catch { /* mensaje no-JSON */ }
+    return 'No pudimos crear tu cuenta. Revisa los datos e intenta de nuevo.'
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,9 +49,18 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await registerUser(form)
-      navigate('/login')
+      // Inicia sesión automáticamente para poder configurar el 2FA en el onboarding.
+      try {
+        const res = await loginUser({ email: form.email, password: form.password })
+        if (res.access_token) {
+          login(res.user, res.access_token)
+          navigate('/registro-2fa')
+          return
+        }
+      } catch { /* si el auto-login falla, se va al login normal */ }
+      navigate('/login', { state: { registered: true } })
     } catch (err) {
-      setError('Error al crear la cuenta. Verifica los datos.')
+      setError(parseRegisterError(err))
     } finally {
       setLoading(false)
     }

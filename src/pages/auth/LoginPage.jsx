@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { loginUser, verify2FALogin } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
@@ -29,7 +29,9 @@ export default function LoginPage() {
   const [tempToken, setTempToken] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+  const justRegistered = location.state?.registered
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -148,6 +150,20 @@ export default function LoginPage() {
               <p style={{ font: '500 14px Archivo', color: 'var(--muted)', margin: '0 0 26px' }}>
                 Continúa donde lo dejaste.
               </p>
+
+              {justRegistered && (
+                <div style={{
+                  background: 'rgba(47,190,87,.1)', border: '1px solid rgba(47,190,87,.25)',
+                  color: 'var(--greendk)', borderRadius: 10, padding: '10px 14px',
+                  font: '600 13px Archivo', marginBottom: 16,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 L9 17 L4 12" />
+                  </svg>
+                  ¡Cuenta creada con éxito! Inicia sesión para continuar.
+                </div>
+              )}
 
               {error && (
                 <div style={{
