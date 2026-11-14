@@ -28,3 +28,6 @@ dist-ssr
 # Archivos python de compilación
 **/__pycache__/
 *.py[cod]
+
+# Contexto local de Claude Code (no versionado)
+CLAUDE.md
