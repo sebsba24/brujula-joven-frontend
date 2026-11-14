@@ -31,9 +31,14 @@ const fetchAPI = async (url, options = {}) => {
     headers,
   });
 
-  // Manejo de errores mejorado
+  // Manejo de errores mejorado (tolera respuestas de error sin cuerpo JSON)
   if (!res.ok) {
-    const error = await res.json();
+    let error;
+    try {
+      error = await res.json();
+    } catch {
+      error = { detail: `Error ${res.status} ${res.statusText}` };
+    }
     console.error("ERROR BACKEND:", error);
     throw new Error(JSON.stringify(error));
   }
@@ -50,7 +55,12 @@ export const loginUser = async (data) => {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const error = await res.json();
+    let error;
+    try {
+      error = await res.json();
+    } catch {
+      error = { detail: `Error ${res.status} ${res.statusText}` };
+    }
     throw new Error(JSON.stringify(error));
   }
   return res.json();
@@ -65,7 +75,12 @@ export const verify2FALogin = async (temp_token, code) => {
     body: JSON.stringify({ temp_token, code }),
   });
   if (!res.ok) {
-    const error = await res.json();
+    let error;
+    try {
+      error = await res.json();
+    } catch {
+      error = { detail: `Error ${res.status} ${res.statusText}` };
+    }
     throw new Error(JSON.stringify(error));
   }
   return res.json();

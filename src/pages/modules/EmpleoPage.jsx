@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Briefcase, BookOpen, Building2, CheckCircle2, ExternalLink, Search, MapPin, Clock, Sparkles, AlertCircle } from 'lucide-react'
 import { getProgresoEmpleo, guardarProgresoEmpleo, getPerfilByUsuario } from '../../services/api'
@@ -65,7 +65,7 @@ const RASGOS_INFO = {
 }
 
 const PORTALES_URLS = {
-  computrabajo: (q) => `https://www.computrabajo.com.co/trabajo-de-${encodeURIComponent(q.replace(/\s+/g, '-'))}`,
+  computrabajo: (q) => `https://co.computrabajo.com/trabajo-de-${encodeURIComponent(q.replace(/\s+/g, '-'))}`,
   elempleo: (q) => `https://www.elempleo.com/co/ofertas-empleo/?s=${encodeURIComponent(q)}`,
   linkedin: (q) => `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=Colombia`,
 }
@@ -179,7 +179,7 @@ function TabOfertas({ idUsuario }) {
           Para ver ofertas personalizadas, necesitamos conocer tu perfil. Completa el cuestionario vocacional y vuelve aquí.
         </p>
         <Link
-          to="/modulos/vocacional"
+          to="/modulos/test"
           style={{
             display: 'inline-block', marginTop: 10,
             fontSize: 12, fontWeight: 700,
@@ -281,21 +281,21 @@ const RECURSOS = [
     title: 'Cómo crear una hoja de vida moderna',
     tipo: 'Guía',
     tiempo: '5 min',
-    url: 'https://www.mintrabajo.gov.co/empleo/consejos-para-empleo',
+    url: 'https://www.elempleo.com/co/noticias/consejos-profesionales',
   },
   {
     id: 'entrevistas',
     title: 'Preparación para entrevistas de trabajo',
-    tipo: 'Video',
+    tipo: 'Guía',
     tiempo: '12 min',
-    url: 'https://www.sena.edu.co/es-co/Empresarios/paginas/orientacionEmpresarial.aspx',
+    url: 'https://www.elempleo.com/co/noticias/tendencias-laborales/preguntas-inteligentes-que-te-haran-destacar-en-una-entrevista-de-trabajo-8220',
   },
   {
     id: 'plataformas',
     title: 'Plataformas de empleo en Colombia',
     tipo: 'Lista',
     tiempo: '3 min',
-    url: 'https://www.computrabajo.com.co',
+    url: 'https://co.computrabajo.com',
   },
   {
     id: 'contratos',
@@ -309,7 +309,7 @@ const RECURSOS = [
     title: 'Primer empleo: derechos y obligaciones',
     tipo: 'Artículo',
     tiempo: '6 min',
-    url: 'https://www.mintrabajo.gov.co/empleo/ley-primer-empleo',
+    url: 'https://www.serviciodeempleo.gov.co/',
   },
 ]
 
@@ -317,7 +317,7 @@ const PORTALES = [
   {
     nombre: 'Computrabajo',
     descripcion: 'El portal de empleo más grande de Colombia',
-    url: 'https://www.computrabajo.com.co',
+    url: 'https://co.computrabajo.com',
     color: '#2563eb',
     inicial: 'C',
   },
@@ -350,7 +350,7 @@ export default function EmpleoPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), [])
   const idUsuario = user?.id_usuario
 
   // Cargar progreso del backend
