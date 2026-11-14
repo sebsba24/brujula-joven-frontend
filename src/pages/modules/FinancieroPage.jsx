@@ -35,9 +35,9 @@ const TEMAS = [
       },
       {
         subtitulo: 'Herramienta gratuita',
-        texto: 'La Superfinanciera tiene una hoja de presupuesto descargable en educacionfinanciera.gov.co — úsala como plantilla.',
-        url: 'https://educacionfinanciera.gov.co/',
-        urlLabel: 'Ir a educacionfinanciera.gov.co',
+        texto: 'La Superintendencia Financiera tiene un portal de educación financiera para el consumidor, con guías para organizar tu presupuesto y entender tus productos financieros.',
+        url: 'https://www.superfinanciera.gov.co/personas/',
+        urlLabel: 'Ir al portal del consumidor financiero',
       },
     ],
   },
@@ -119,9 +119,9 @@ const TEMAS = [
       },
       {
         subtitulo: '¿Cuánto te pueden prestar?',
-        texto: 'Hasta el 100% del valor de la matrícula según tu situación socioeconómica. Para estratos 1 y 2 hay líneas con tasa del 0% real (solo inflación). Consulta el simulador en icetex.gov.co.',
-        url: 'https://www.icetex.gov.co/portal/Inicio/PortalEstudiante/Simulador',
-        urlLabel: 'Simulador ICETEX',
+        texto: 'Hasta el 100% del valor de la matrícula según tu situación socioeconómica. Para estratos 1 y 2 hay líneas con tasa del 0% real (solo inflación). Consulta las líneas de crédito disponibles en icetex.gov.co.',
+        url: 'https://web.icetex.gov.co/creditos/planes-de-financiacion',
+        urlLabel: 'Líneas de crédito ICETEX',
       },
       {
         subtitulo: 'Requisito clave: rendimiento académico',
@@ -130,7 +130,7 @@ const TEMAS = [
       {
         subtitulo: 'Beca Generación E',
         texto: 'Si eres de estrato 1, 2 o 3, puedes aplicar a Generación E: el gobierno paga el 100% de tu matrícula en universidades públicas. No es un crédito — no lo devuelves. Aplica a través del ICETEX cada semestre.',
-        url: 'https://www.icetex.gov.co/portal/Inicio/PortalEstudiante/Becas',
+        url: 'https://web.icetex.gov.co/becas',
         urlLabel: 'Ver becas ICETEX',
       },
     ],

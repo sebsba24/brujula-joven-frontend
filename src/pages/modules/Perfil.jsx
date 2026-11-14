@@ -257,7 +257,7 @@ export default function Perfil() {
     <div style={{ minHeight: '100%', background: 'var(--bg)' }}>
       <div style={{ padding: '60px 36px 24px', textAlign: 'center', color: 'var(--muted)', font: '500 14px Archivo' }}>
         No se encontró el perfil vocacional.{" "}
-        <Link to="/modulos/test-vocacional" style={{ color: 'var(--cyan)' }}>Realizar test</Link>
+        <Link to="/modulos/test" style={{ color: 'var(--cyan)' }}>Realizar test</Link>
       </div>
       <div style={{ padding: '0 44px 8px' }}>
         <div style={{ font: '800 18px Archivo' }}>Seguridad de la cuenta</div>
@@ -353,7 +353,7 @@ export default function Perfil() {
               </div>
             );
           })}
-          <Link to="/modulos/test-vocacional" style={{
+          <Link to="/modulos/test" style={{
             font: '700 13px Archivo', color: 'var(--cyan)', textDecoration: 'none',
             display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6,
           }}>
