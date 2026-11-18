@@ -15,7 +15,8 @@ import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import OnboardingTwoFactor from './pages/auth/OnboardingTwoFactor'
 import './styles/tokens.css'
-import ChatWidget from './components/ui/ChatWidget'
+// Brújula IA (chat) desactivada temporalmente — no se muestra
+// import ChatWidget from './components/ui/ChatWidget'
 
 function AppLayout() {
   const isMobile = useIsMobile()
@@ -48,7 +49,8 @@ function AppLayout() {
         )}
         <Outlet />
       </main>
-      <ChatWidget />
+      {/* Brújula IA (chat) desactivada temporalmente — no se muestra */}
+      {/* <ChatWidget /> */}
     </div>
   )
 }
