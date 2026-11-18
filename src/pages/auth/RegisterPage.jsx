@@ -30,8 +30,12 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    // El número de documento solo admite dígitos (se eliminan letras, espacios y símbolos)
+    const limpio = name === 'numero_documento' ? value.replace(/\D/g, '') : value
+    setForm({ ...form, [name]: limpio })
+  }
 
   const parseRegisterError = (err) => {
     try {
@@ -171,7 +175,7 @@ export default function RegisterPage() {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ font: '700 13px Archivo', display: 'block', marginBottom: 7 }}>Número</label>
-                <input type="text" name="numero_documento" placeholder="12345678" className="input" onChange={handleChange} required />
+                <input type="text" name="numero_documento" placeholder="12345678" className="input" value={form.numero_documento} onChange={handleChange} inputMode="numeric" pattern="[0-9]*" maxLength={15} autoComplete="off" required />
               </div>
             </div>
 
