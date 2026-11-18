@@ -67,8 +67,8 @@ export default function Sidebar({ isMobile = false, mobileOpen = false, onClose 
         position: 'fixed',
         top: 0,
         left: 0,
-        height: '100vh',
-        overflowY: 'auto',
+        height: '100dvh',
+        overflow: 'hidden',
         zIndex: 60,
         transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.25s ease',
@@ -86,8 +86,8 @@ export default function Sidebar({ isMobile = false, mobileOpen = false, onClose 
         transition: 'width 0.2s ease',
         position: 'sticky',
         top: 0,
-        height: '100vh',
-        overflowY: 'auto',
+        height: '100dvh',
+        overflow: 'hidden',
       }
 
   return (
@@ -149,8 +149,8 @@ export default function Sidebar({ isMobile = false, mobileOpen = false, onClose 
         )}
       </div>
 
-      {/* Nav */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Nav (única zona scrolleable; el perfil de abajo queda siempre fijo) */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, minHeight: 0, overflowY: 'auto' }}>
         {NAV_LINKS.map(({ label, path, Icon }) => {
           const active = isActive(path)
           return (
@@ -192,8 +192,8 @@ export default function Sidebar({ isMobile = false, mobileOpen = false, onClose 
         })}
       </nav>
 
-      {/* Bottom: profile card or user avatar */}
-      <div style={{ marginTop: 'auto' }}>
+      {/* Bottom: profile card or user avatar (fijo, siempre visible) */}
+      <div style={{ flexShrink: 0 }}>
         {!collapsed ? (
           <div style={{
             background: 'linear-gradient(150deg, var(--navy), var(--navy2))',
