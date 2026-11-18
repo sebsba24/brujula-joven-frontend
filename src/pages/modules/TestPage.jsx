@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTestEngine } from "../../hooks/useTestEngine";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { guardarRespuestas, getPerfilByUsuario, eliminarRespuestasCuestionario, getRecomendacionesByUsuario } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
@@ -300,6 +300,14 @@ export default function TestPage() {
   const [answers, setAnswers] = useState({ nivel1: {}, nivel2: {}, nivel3: {} });
   const [guardando, setGuardando] = useState(false);
 
+  // Al avanzar de nivel, volver al tope. El scroll vive en el <main> del layout
+  // (overflowY:auto), no en window, por eso se sube el contenedor scrolleable.
+  const topRef = useRef(null);
+  useEffect(() => {
+    topRef.current?.scrollIntoView({ block: "start" });
+    window.scrollTo?.(0, 0);
+  }, [currentLevel]);
+
   // Verificar test cada vez que el token esté disponible
   useEffect(() => {
     if (!token) return           // token aún no cargado desde localStorage
@@ -444,7 +452,7 @@ export default function TestPage() {
 
   // ── UI del test ──────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div ref={topRef} style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
       {/* Header con progress */}
       <div style={{
