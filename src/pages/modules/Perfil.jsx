@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getPerfilByUsuario, getRecomendacionesByUsuario, get2FAStatus, setup2FA, enable2FA, disable2FA } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
+import useIsMobile from "../../hooks/useIsMobile";
 
 const RASGO_NOMBRE = {
   R: "Realista", I: "Investigativo", A: "Artístico",
@@ -26,6 +27,8 @@ const RASGO_DESCRIPCION = {
 
 // ==================== Componente 2FA ====================
 function Seccion2FA() {
+  const isMobile = useIsMobile()
+  const padX = isMobile ? 16 : 44
   const [status, setStatus] = useState(null)       // null | { totp_enabled }
   const [phase, setPhase]   = useState('idle')     // idle | setup | disabling
   const [setupData, setSetupData] = useState(null) // { secret, otpauth_uri }
@@ -74,7 +77,7 @@ function Seccion2FA() {
     : null
 
   return (
-    <div style={{ padding: '0 44px 48px' }}>
+    <div style={{ padding: `0 ${padX}px 48px` }}>
       <div style={{ border: '1px solid var(--line)', borderRadius: 16, padding: 24, background: 'var(--surf)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div style={{
@@ -225,6 +228,8 @@ function Seccion2FA() {
 // ==================== Perfil principal ====================
 
 export default function Perfil() {
+  const isMobile = useIsMobile();            // < 768px
+  const padX = isMobile ? 16 : 44;           // padding lateral responsive
   const { token, user: authUser } = useAuth();
   const decoded = token ? jwtDecode(token) : null;
   const id_usuario = decoded?.sub;
@@ -259,7 +264,7 @@ export default function Perfil() {
         No se encontró el perfil vocacional.{" "}
         <Link to="/modulos/test" style={{ color: 'var(--cyan)' }}>Realizar test</Link>
       </div>
-      <div style={{ padding: '0 44px 8px' }}>
+      <div style={{ padding: `0 ${padX}px 8px` }}>
         <div style={{ font: '800 18px Archivo' }}>Seguridad de la cuenta</div>
       </div>
       <Seccion2FA />
@@ -295,7 +300,7 @@ export default function Perfil() {
       </div>
 
       {/* Avatar + info */}
-      <div style={{ padding: '0 40px 36px' }}>
+      <div style={{ padding: `0 ${padX}px 36px` }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, flexWrap: 'wrap', marginTop: -44, position: 'relative' }}>
           <div style={{
             width: 96, height: 96, borderRadius: 24, flexShrink: 0,
@@ -324,8 +329,8 @@ export default function Perfil() {
         </div>
       </div>
 
-      {/* 2-col cards */}
-      <div style={{ padding: '0 44px 36px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      {/* 2-col cards (1 columna en móvil) */}
+      <div style={{ padding: `0 ${padX}px 36px`, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
 
         {/* Perfil vocacional */}
         <div style={{ border: '1px solid var(--line)', borderRadius: 16, padding: 24, background: 'var(--surf)' }}>
@@ -400,7 +405,7 @@ export default function Perfil() {
 
       {/* Recomendaciones / Guardados */}
       {allCareers.length > 0 && (
-        <div style={{ padding: '0 44px 48px' }}>
+        <div style={{ padding: `0 ${padX}px 48px` }}>
           <div style={{ font: '800 18px Archivo', marginBottom: 18 }}>Carreras recomendadas</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {allCareers.map((career, i) => {
@@ -442,7 +447,7 @@ export default function Perfil() {
       )}
 
       {/* RIASEC completo */}
-      <div style={{ padding: '0 44px 48px' }}>
+      <div style={{ padding: `0 ${padX}px 48px` }}>
         <div style={{ font: '800 18px Archivo', marginBottom: 18 }}>Todas tus áreas de interés</div>
         <div style={{
           border: '1px solid var(--line)', borderRadius: 16, padding: 24, background: 'var(--surf)',
@@ -467,7 +472,7 @@ export default function Perfil() {
       </div>
 
       {/* Seguridad: 2FA */}
-      <div style={{ padding: '0 44px 8px' }}>
+      <div style={{ padding: `0 ${padX}px 8px` }}>
         <div style={{ font: '800 18px Archivo', marginBottom: 0 }}>Seguridad de la cuenta</div>
       </div>
       <Seccion2FA />
